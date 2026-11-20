@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AMINATA GAYE — Mechatronics Engineer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #10151c;
+    --bg-alt: #141b24;
+    --surface: #1b2531;
+    --surface-2: #212c3a;
+    --line: #2c3846;
+    --line-soft: #212a35;
+    --text: #e9e6dd;
+    --text-dim: #98a2b0;
+    --text-faint: #5f6b79;
+    --copper: #c97c4c;
+    --copper-soft: rgba(201,124,76,0.14);
+    --blue: #6fa8c0;
+    --blue-soft: rgba(111,168,192,0.14);
+    --amber: #d9a441;
+    --radius: 2px;
+    --maxw: 1120px;
+  }
+
+  *{ box-sizing: border-box; }
+  html{ scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce){
+    html{ scroll-behavior: auto; }
+    *{ animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+  }
+
+  body{
+    margin:0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    background-image:
+      linear-gradient(var(--line-soft) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
+    background-size: 48px 48px;
+    background-position: -1px -1px;
+  }
+
+  a{ color: inherit; }
+  h1,h2,h3{ font-family: 'Space Grotesk', sans-serif; margin: 0; letter-spacing: -0.01em; }
+
+  .label{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+
+  .wrap{ max-width: var(--maxw); margin: 0 auto; padding: 0 28px; }
+
+  /* ---------- NAV ---------- */
+  nav{
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(16,21,28,0.88);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+  }
+  nav .wrap{ display:flex; align-items:center; justify-content:space-between; height:64px; }
+  .nav-mark{ display:flex; align-items:center; gap:10px; font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--text-dim); }
+  .nav-mark .dot{ width:8px; height:8px; border:1.5px solid var(--copper); border-radius:50%; position:relative; }
+  .nav-mark .dot::after{ content:""; position:absolute; inset:2px; background:var(--copper); border-radius:50%; }
+  .nav-links{ display:flex; gap: 28px; list-style:none; margin:0; padding:0; }
+  .nav-links a{
+    text-decoration:none; font-family:'IBM Plex Mono', monospace; font-size:12.5px;
+    letter-spacing:0.08em; text-transform:uppercase; color: var(--text-dim);
+    padding: 4px 2px; border-bottom: 1px solid transparent;
+    transition: color .15s ease, border-color .15s ease;
+  }
+  .nav-links a:hover, .nav-links a:focus-visible{ color: var(--copper); border-color: var(--copper); }
+  .nav-cta{
+    font-family:'IBM Plex Mono', monospace; font-size:12px; text-transform:uppercase; letter-spacing:.08em;
+    color: var(--bg); background: var(--copper); padding: 8px 14px; text-decoration:none;
+    border-radius: var(--radius);
+  }
+  .nav-toggle{ display:none; }
+
+  a:focus-visible, button:focus-visible{ outline: 2px solid var(--blue); outline-offset: 3px; }
+
+  /* ---------- HERO / TITLE BLOCK ---------- */
+  .hero{
+    position: relative;
+    border-bottom: 1px solid var(--line);
+    padding: 64px 0 0 0;
+  }
+  .crop{
+    position:absolute; width:18px; height:18px; opacity:0.55;
+  }
+  .crop::before, .crop::after{ content:""; position:absolute; background: var(--text-faint); }
+  .crop::before{ width:100%; height:1px; top:50%; }
+  .crop::after{ width:1px; height:100%; left:50%; }
+  .crop.tl{ top:14px; left:14px; }
+  .crop.tr{ top:14px; right:14px; }
+
+  .hero-inner{ padding: 40px 0 56px; position:relative; }
+  .hero-eyebrow{
+    display:flex; align-items:center; gap:10px; margin-bottom:22px;
+  }
+  .hero-eyebrow .rule{ flex:1; height:1px; background: var(--line); }
+
+  .hero h1{
+    font-size: clamp(44px, 8vw, 84px);
+    font-weight: 700;
+    line-height: 0.98;
+    color: var(--text);
+  }
+  .hero h1 span{ color: var(--copper); }
+
+  .hero-sub{
+    margin-top: 18px;
+    max-width: 560px;
+    font-size: 17px;
+    color: var(--text-dim);
+  }
+
+  .hero-actions{ display:flex; gap:14px; margin-top: 34px; flex-wrap: wrap; }
+  .btn{
+    font-family:'IBM Plex Mono', monospace; font-size:12.5px; text-transform:uppercase; letter-spacing:.08em;
+    padding: 13px 22px; text-decoration:none; border-radius: var(--radius);
+    display:inline-flex; align-items:center; gap:8px;
+    transition: transform .15s ease, border-color .15s ease, background .15s ease;
+  }
+  .btn-primary{ background: var(--copper); color: var(--bg); }
+  .btn-primary:hover{ transform: translateY(-1px); }
+  .btn-ghost{ border: 1px solid var(--line); color: var(--text); }
+  .btn-ghost:hover{ border-color: var(--blue); color: var(--blue); }
+
+  /* title block strip */
+  .titleblock{
+    border-top: 1px solid var(--line);
+    display:grid;
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .tb-cell{
+    padding: 16px 20px;
+    border-right: 1px solid var(--line);
+  }
+  .tb-cell:last-child{ border-right:none; }
+  .tb-cell .label{ margin-bottom:6px; }
+  .tb-cell .val{ font-family:'IBM Plex Mono', monospace; font-size:13.5px; color: var(--text); }
+  .tb-cell .val.copper{ color: var(--copper); }
+
+  /* ---------- SECTION SHELL ---------- */
+  section{ padding: 84px 0; border-bottom: 1px solid var(--line); position:relative; }
+  section:last-of-type{ border-bottom:none; }
+  .sec-head{ display:flex; align-items:baseline; gap:16px; margin-bottom: 44px; }
+  .sec-num{ font-family:'IBM Plex Mono', monospace; color: var(--copper); font-size: 13px; }
+  .sec-head h2{ font-size: clamp(26px, 4vw, 36px); }
+  .sec-head .rule{ flex:1; height:1px; background: var(--line); }
+
+  /* ---------- ABOUT ---------- */
+  .about-grid{ display:grid; grid-template-columns: 1.3fr 1fr; gap: 56px; }
+  .about-text p{ color: var(--text-dim); font-size: 16px; margin: 0 0 16px; max-width: 560px; }
+  .about-text strong{ color: var(--text); font-weight: 600; }
+
+  .spec-sheet{ border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+  .spec-sheet .sh{
+    padding: 14px 18px; border-bottom: 1px solid var(--line);
+    font-family:'IBM Plex Mono', monospace; font-size:12px; letter-spacing:.1em; text-transform:uppercase; color: var(--text-faint);
+  }
+  .spec-row{
+    display:flex; justify-content:space-between; gap: 12px;
+    padding: 13px 18px; border-bottom: 1px solid var(--line-soft);
+    font-size: 14px;
+  }
+  .spec-row:last-child{ border-bottom:none; }
+  .spec-row .k{ color: var(--text-faint); font-family:'IBM Plex Mono', monospace; font-size:12.5px; }
+  .spec-row .v{ color: var(--text); text-align:right; }
+
+  /* ---------- SKILLS ---------- */
+  .skills-grid{ display:grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+  .skill-col{ background: var(--bg); padding: 28px 26px; }
+  .skill-col .tag{
+    display:inline-block; font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:.1em;
+    text-transform:uppercase; color: var(--bg); background: var(--blue); padding: 3px 8px; border-radius: var(--radius); margin-bottom: 16px;
+  }
+  .skill-col:nth-child(1) .tag{ background: var(--copper); }
+  .skill-col:nth-child(3) .tag{ background: var(--amber); }
+  .skill-col h3{ font-size: 19px; margin-bottom: 14px; }
+  .skill-col ul{ list-style:none; margin:0; padding:0; }
+  .skill-col li{
+    font-size: 14.5px; color: var(--text-dim); padding: 8px 0; border-top: 1px solid var(--line-soft);
+    display:flex; align-items:center; gap:10px;
+  }
+  .skill-col li:first-of-type{ border-top:none; }
+  .skill-col li::before{ content:""; width:5px; height:5px; background: var(--text-faint); flex-shrink:0; }
+
+  /* ---------- PROJECTS ---------- */
+  .projects{ display:flex; flex-direction:column; gap: 22px; }
+  .project-card{
+    border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface);
+    display:grid; grid-template-columns: 220px 1fr; position:relative; overflow:hidden;
+  }
+  .project-card.featured{ border-color: var(--copper); }
+  .pc-side{
+    background: var(--surface-2); border-right: 1px solid var(--line);
+    padding: 24px 20px; display:flex; flex-direction:column; justify-content:space-between;
+  }
+  .pc-index{ font-family:'IBM Plex Mono', monospace; font-size: 34px; color: var(--line); font-weight:600; }
+  .status{
+    font-family:'IBM Plex Mono', monospace; font-size: 11px; text-transform:uppercase; letter-spacing:.08em;
+    padding: 5px 9px; border-radius: var(--radius); width: fit-content;
+  }
+  .status.progress{ background: var(--copper-soft); color: var(--copper); border:1px solid rgba(201,124,76,0.4); }
+  .status.done{ background: var(--blue-soft); color: var(--blue); border:1px solid rgba(111,168,192,0.4); }
+  .status.planned{ background: rgba(152,162,176,0.1); color: var(--text-faint); border:1px solid var(--line); }
+
+  .pc-main{ padding: 26px 28px; }
+  .pc-top{ display:flex; align-items:flex-start; justify-content:space-between; gap: 16px; margin-bottom: 10px; }
+  .pc-main h3{ font-size: 22px; }
+  .featured-flag{
+    font-family:'IBM Plex Mono', monospace; font-size: 10.5px; text-transform:uppercase; letter-spacing:.1em;
+    color: var(--copper); border: 1px solid var(--copper); padding: 3px 8px; border-radius: var(--radius); white-space:nowrap;
+  }
+  .pc-main p{ color: var(--text-dim); font-size: 14.5px; margin: 0 0 16px; max-width: 620px; }
+  .pc-tags{ display:flex; flex-wrap:wrap; gap: 8px; }
+  .pc-tags span{
+    font-family:'IBM Plex Mono', monospace; font-size: 11.5px; color: var(--text-faint);
+    border: 1px solid var(--line); padding: 4px 9px; border-radius: var(--radius);
+  }
+
+  @media (max-width: 720px){
+    .project-card{ grid-template-columns: 1fr; }
+    .pc-side{ flex-direction:row; border-right:none; border-bottom:1px solid var(--line); align-items:center; }
+  }
+
+  /* ---------- CONTACT ---------- */
+  .contact-block{
+    display:grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items:end;
+  }
+  .contact-block h2{ font-size: clamp(28px,5vw,44px); max-width: 480px; }
+  .contact-sub{ margin-top: 14px; max-width: 420px; color: var(--text-dim); font-size: 15px; }
+  .contact-links{ display:flex; flex-direction:column; gap: 0; }
+  .contact-links a{
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 16px 0; border-top: 1px solid var(--line);
+    text-decoration:none; font-family:'IBM Plex Mono', monospace; font-size: 14px; color: var(--text);
+    transition: color .15s ease, padding-left .15s ease;
+  }
+  .contact-links a:last-child{ border-bottom: 1px solid var(--line); }
+  .contact-links a .arrow{ color: var(--text-faint); transition: transform .15s ease; }
+  .contact-links a:hover{ color: var(--copper); padding-left: 6px; }
+  .contact-links a:hover .arrow{ transform: translateX(3px); color: var(--copper); }
+
+  footer{
+    padding: 28px 0; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap: 10px;
+  }
+  footer .label{ color: var(--text-faint); }
+
+  @media (max-width: 860px){
+    .titleblock{ grid-template-columns: repeat(2, 1fr); }
+    .tb-cell:nth-child(2){ border-right:none; }
+    .about-grid{ grid-template-columns: 1fr; }
+    .skills-grid{ grid-template-columns: 1fr; }
+    .contact-block{ grid-template-columns: 1fr; }
+    .nav-links{ display:none; }
+  }
+  .project-detail-link{color:inherit;text-decoration:none;}
+  .project-detail-link::after{content:"";position:absolute;inset:0;}
+  .project-link-label{display:block;margin-top:8px;font:12px 'IBM Plex Mono',monospace;color:var(--blue);}
+  .project-link-card:hover,.project-link-card:focus-within{border-color:var(--blue);}
+  .project-detail-link:focus-visible::after{outline:2px solid var(--blue);outline-offset:-3px;}
+  #sudoku-project, #neural-network-project, #rho2-project, #rover-project, #navlab-project, #kalman-project{scroll-margin-top:84px;}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <div class="nav-mark"><span class="dot"></span> AMINATA GAYE — MECHATRONICS</div>
+    <ul class="nav-links">
+      <li><a href="#about">About</a></li>
+      <li><a href="#skills">Skills</a></li>
+      <li><a href="#projects">Projects</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+    <a class="nav-cta" href="#contact">Get in touch</a>
+  </div>
+</nav>
+
+<header class="hero">
+  <span class="crop tl"></span>
+  <span class="crop tr"></span>
+  <div class="wrap">
+    <div class="hero-inner">
+      <div class="hero-eyebrow">
+        <span class="rule"></span>
+      </div>
+      <h1>AMINATA GAYE<br>Designs<br><span>Intelligent Machines.</span></h1>
+      <p class="hero-sub">Mechatronics Engineering student at the University of Southampton, combining mechanical design, embedded electronics and intelligent control to build robotic systems from concept to prototype.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="#projects">View projects →</a>
+        <a class="btn btn-ghost" href="#contact">Get in touch →</a>
+      </div>
+    </div>
+    <div class="titleblock">
+      <div class="tb-cell">
+        <div class="label">Discipline</div>
+        <div class="val copper">Mechatronics Engineering</div>
+      </div>
+      <div class="tb-cell">
+        <div class="label">Year</div>
+        <div class="val">Final Year — 2026/27</div>
+      </div>
+      <div class="tb-cell">
+        <div class="label">Based in</div>
+        <div class="val">Southampton, UK</div>
+      </div>
+      <div class="tb-cell">
+        <div class="label">Current Focus</div>
+        <div class="val">Robotics and Intelligent Systems</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section id="about">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">01</span>
+      <h2>Engineering Philosophy</h2>
+      <span class="rule"></span>
+    </div>
+    <div class="about-grid">
+      <div class="about-text">
+        <p>I'm a Mechatronics Engineering student with a passion for designing intelligent robotic systems where mechanics, electronics and software come together to solve real engineering problems.</p>
+
+        <p>What I enjoy most about engineering is working across the entire design process, from modelling mechanical components and integrating electronics to developing control algorithms and autonomous behaviour. Every project is an opportunity to understand how each subsystem influences the performance of the complete robot.</p>
+
+        <p>This portfolio is more than a showcase of finished projects. It documents my engineering process: the design decisions, iterations, testing and lessons learned while developing systems from concept to working prototype.</p>
+
+        <p>My long-term goal is to contribute to the future of robotics by building autonomous systems that are both technically innovative and practically useful.</p>
+      </div>
+      <div class="spec-sheet">
+        <div class="sh">Quick specs</div>
+        <div class="spec-row"><span class="k">Field</span><span class="v">Mechatronics Engineering</span></div>
+        <div class="spec-row"><span class="k">University</span><span class="v">University of Southampton</span></div>
+        <div class="spec-row"><span class="k">Languages</span><span class="v">French, English</span></div>
+        <div class="spec-row"><span class="k">CAD</span><span class="v">SolidWorks, Fusion 360</span></div>
+        <div class="spec-row"><span class="k">Programming</span><span class="v">Python, C++, MATLAB</span></div>
+        <div class="spec-row"><span class="k">Interests</span><span class="v">Robotics, Automation, Computer Vision, Control Systems</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="skills">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">02</span>
+      <h2>Skills</h2>
+      <span class="rule"></span>
+    </div>
+    <div class="skills-grid">
+      <div class="skill-col">
+        <span class="tag">Mechanical</span>
+        <h3>Design &amp; fabrication</h3>
+        <ul>
+          <li>Mechanical Design</li>
+          <li>CAD (Fusion 360 &amp; SolidWorks)</li>
+          <li>3D Printing</li>
+          <li>Design for Manufacture</li>
+          <li>Mechanism Design</li>
+          <li>Engineering Drawings</li>
+        </ul>
+      </div>
+      <div class="skill-col">
+        <span class="tag">Electronics</span>
+        <h3>Circuits &amp; systems</h3>
+        <ul>
+          <li>Arduino</li>
+          <li>Raspberry Pi</li>
+          <li>ESP32</li>
+          <li>Embedded Systems</li>
+          <li>Sensor Integration</li>
+          <li>PCB Fundamentals</li>
+          <li>Motor &amp; Servo Control</li>
+        </ul>
+      </div>
+      <div class="skill-col">
+        <span class="tag">Software</span>
+        <h3>Control &amp; code</h3>
+        <ul>
+          <li>Python</li>
+          <li>C++</li>
+          <li>MATLAB / Simulink</li>
+          <li>Robot Kinematics</li>
+          <li>Control Systems</li>
+          <li>Computer Vision</li>
+          <li>Git</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="projects">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">03</span>
+      <h2>Projects</h2>
+      <span class="rule"></span>
+    </div>
+    <div class="projects">
+
+      <div class="project-card featured project-link-card" id="robotic-arm-project">
+        <div class="pc-side">
+          <span class="pc-index">01</span>
+          <span class="status progress">In progress</span>
+        </div>
+        <div class="pc-main">
+          <div class="pc-top">
+            <h3><a class="project-detail-link" href="robotic-arm/index.html">Robotic Arm — Built From Scratch<span class="project-link-label">View CAD study →</span></a></h3>
+            <span class="featured-flag">Featured</span>
+          </div>
+          <p>An in-progress custom robotic manipulator. The current CAD model is available to inspect alongside the plan for actuator selection, forward and inverse kinematics, and embedded control.</p>
+          <div class="pc-tags">
+            <span>Fusion 360</span><span>Arduino</span><span>Robot Kinematics</span><span>Control Systems</span><span>Python</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="project-card project-link-card" id="navlab-project">
+        <div class="pc-side">
+          <span class="pc-index">02</span>
+          <span class="status done">Completed</span>
+        </div>
+        <div class="pc-main">
+          <div class="pc-top">
+            <h3><a class="project-detail-link" href="navlab/index.html">NavLab — A* &amp; Q-Learning Path Planning<span class="project-link-label">View full project →</span></a></h3>
+          </div>
+          <p>Developed a Python-based autonomous navigation simulator comparing A* search with reinforcement learning through Q-learning. Implemented a Manhattan-distance heuristic, reward-based training and path visualisation on a 10×10 obstacle grid. Both approaches found paths of 18 and 28 steps across two test environments, illustrating different approaches to path planning.</p>
+          <div class="pc-tags">
+            <span>Python</span><span>A*</span><span>Q-Learning</span><span>Reinforcement Learning</span><span>Path Planning</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="project-card project-link-card" id="kalman-filter-project">
+        <div class="pc-side">
+          <span class="pc-index">03</span>
+          <span class="status done">Completed</span>
+        </div>
+        <div class="pc-main">
+          <div class="pc-top">
+            <h3><a class="project-detail-link" href="kalman-filter/index.html">Kalman Filter — Distance Estimation &amp; Sensor Noise Reduction<span class="project-link-label">View full project →</span></a></h3>
+          </div>
+          <p>Implemented a scalar Kalman filter in Python to improve VL53L0X time-of-flight distance estimates using experimental rover sensor data. Compared filtering against raw measurements and a moving average across four stationary distances and four servo angular velocities. Reduced RMSE in all 16 evaluation trials while identifying the limitations of smoothing when speed-dependent measurement bias is present.</p>
+          <div class="pc-tags">
+            <span>Python</span><span>Kalman Filtering</span><span>State Estimation</span><span>NumPy</span><span>Sensor Data Analysis</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="pc-side">
+          <span class="pc-index">04</span>
+          <span class="status planned">Coming soon</span>
+        </div>
+        <div class="pc-main">
+          <div class="pc-top">
+            <h3>Autonomous Maze Solver</h3>
+          </div>
+          <p>An autonomous mobile robot capable of navigating unknown environments using onboard sensing, intelligent path planning and real-time control. The project integrates mechanical design, embedded electronics and autonomous navigation algorithms into a complete robotic platform developed from scratch.</p>
+          <div class="pc-tags">
+            <span>Autonomous Navigation</span><span>Embedded Systems</span><span>Computer Vision</span><span>Control</span><span>Robotics</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="project-card project-link-card" id="rover-project">
+        <div class="pc-side"><span class="pc-index">05</span><span class="status done">Completed</span></div>
+        <div class="pc-main"><div class="pc-top"><h3><a class="project-detail-link" href="rover/index.html">Rocker-Bogie Rover &amp; Control GUI<span class="project-link-label">View project →</span></a></h3></div>
+          <p>A multidisciplinary rover project combining hardware integration, software development and system testing. The Python/Tkinter control panel provides individual control of six motors, serial communication, distance and IMU telemetry, an orientation visualiser and a simulated test mode. An individual VL53L0X experiment investigates range accuracy and servo scan-speed effects, documented with setup photographs and a report.</p>
+          <div class="pc-tags"><span>Robotics</span><span>Python / Tkinter</span><span>Serial / pyserial</span><span>Motor Control</span><span>Sensor Integration</span><span>Testing</span></div>
+        </div>
+      </div>
+
+      <div class="project-card project-link-card" id="neural-network-project">
+        <div class="pc-side">
+          <span class="pc-index">06</span>
+          <span class="status done">Completed</span>
+        </div>
+        <div class="pc-main">
+          <div class="pc-top">
+            <h3><a class="project-detail-link" href="neural-network/index.html">Neural Network<span class="project-link-label">View project →</span></a></h3>
+          </div>
+          <p>A C++ neural-network lab implementing a 4-bit binary decoder with custom matrix operations, a configurable layer interface, a 4–16–16 network, ReLU/sigmoid activations and backpropagation updates. Trains on all 16 binary inputs with one-hot targets for 3,000 epochs, reports mean-squared error and reports the predicted class for each input after training.</p>
+          <div class="pc-tags">
+            <span>C++</span><span>Matrix Operations</span><span>Neural Networks</span><span>Backpropagation</span><span>Binary Decoder</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="project-card project-link-card" id="sudoku-project">
+        <div class="pc-side">
+          <span class="pc-index">07</span>
+          <span class="status done">Completed</span>
+        </div>
+        <div class="pc-main">
+          <div class="pc-top">
+            <h3><a class="project-detail-link" href="sudoku/index.html">Sudoku Lab<span class="project-link-label">View project →</span></a></h3>
+          </div>
+          <p>A C++ programming lab that reads a Sudoku puzzle from a text file into a 9×9 array and displays it in the terminal. Uses nested loops and character parsing to represent blank cells, then formats the board with row and column indices and 3×3 box separators.</p>
+          <div class="pc-tags">
+            <span>C++</span><span>File I/O</span><span>2D Arrays</span><span>Character Parsing</span><span>Console Output</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="project-card project-link-card" id="rho2-project">
+        <div class="pc-side"><span class="pc-index">08</span><span class="status done">Completed</span></div>
+        <div class="pc-main"><div class="pc-top"><h3><a class="project-detail-link" href="rho2/index.html">Circuit Simulator<span class="project-link-label">View project →</span></a></h3></div>
+          <p>A C++ circuit-simulation lab combining resistor-network analysis, Fourier waveform plotting and sum-of-products logic-gate simulation. Uses separate classes, file-based inputs and an integrated console menu to explore circuit equations, harmonic synthesis and digital logic.</p>
+          <div class="pc-tags"><span>C++</span><span>Object-Oriented Programming</span><span>Circuit Analysis</span><span>Fourier Series</span><span>Digital Logic</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section id="contact">
+  <div class="wrap">
+    <div class="contact-block">
+      <div>
+        <h2>Let's build something meaningful.</h2>
+        <p class="contact-sub">I'm always interested in discussing robotics, engineering, research opportunities and innovative projects.</p>
+      </div>
+      <div class="contact-links">
+        <a href="mailto:aminatagaye2004@gmail.com"><span>Email</span><span class="arrow">aminatagaye2004@gmail.com →</span></a>
+        <a href="https://www.linkedin.com/in/aminata-gaye-b272a0387" target="_blank" rel="noopener"><span>LinkedIn</span><span class="arrow">linkedin.com/in/aminata-gaye →</span></a>
+        <a href="https://github.com/aminatagaye2004-sketch" target="_blank" rel="noopener"><span>GitHub</span><span class="arrow">https://github.com/aminatagaye2004-sketch →</span></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="wrap">
+  <span class="label">© 2026 AMINATA GAYE</span>
+  <span class="label">Southampton, UK</span>
+</footer>
+
+</body>
+</html>

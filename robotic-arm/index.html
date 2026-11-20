@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Robotic Arm — Built From Scratch — Aminata Gaye</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../project.css"></head><body>
+<nav><div class="wrap detail-nav"><a href="../index.html#robotic-arm-project">← All projects</a><span class="nav-mark">AMINATA GAYE / PROJECT 01</span></div></nav>
+<header class="detail-hero wrap"><div class="label">Robotics / Mechanical design / Fusion 360</div><h1>Robotic Arm — Built From Scratch</h1><span class="status progress">In progress</span><p class="intro">A custom robotic manipulator in development. These views show the geometry exported from the current CAD model.</p></header>
+<main class="wrap"><section class="detail-section"><div class="sec-head"><span class="sec-num">01</span><h2>CAD model</h2><span class="rule"></span></div>
+<article class="panel"><div class="cad-views"><figure class="chart"><img src="oblique.png" alt="Oblique rendering of the robotic arm CAD model."><figcaption>Oblique view rendered directly from the Fusion 360 STL export.</figcaption></figure><details><summary>Show side view</summary><figure class="chart"><img src="side.png" alt="Side view of the robotic arm."><figcaption>Orthographic side projection.</figcaption></figure></details><details><summary>Show top view</summary><figure class="chart"><img src="top.png" alt="Top view of the robotic arm."><figcaption>Orthographic top projection.</figcaption></figure></details></div><div class="source-links"><a class="btn btn-ghost" href="robotic-arm.stl" download>Download the CAD mesh ↓</a></div></article></section>
+<section class="detail-section"><div class="sec-head"><span class="sec-num">02</span><h2>Kinematics and prototype work</h2><span class="rule"></span></div>
+<div class="detail-grid"><article class="panel"><h3>Kinematics plan</h3><p>Use the CAD joint axes and link offsets to define coordinate frames. Forward kinematics maps a proposed joint configuration to an end-effector pose. Inverse kinematics starts from a requested pose and solves for joint configurations.</p></article><article class="panel"><h3>Prototype status</h3><p>Actuator selection and embedded motion control are in progress. Workspace, positioning repeatability and payload are future prototype checks.</p></article></div></section>
+<section class="detail-section" id="visualisation">
+<div class="sec-head"><span class="sec-num">03</span><h2>How the CAD views were generated</h2><span class="rule"></span></div>
+<article class="panel">
+<p>The Python renderer reads the triangular faces from the binary STL and projects them onto a view plane. It shades the visible faces using their normals. This is the script used for the three views above.</p>
+<p>Install NumPy and Pillow, then run <code>python render_arm.py robotic-arm.stl</code> with both downloads in the same folder.</p>
+<div class="source-links"><a class="btn btn-ghost" href="render_arm.py" download>Download CAD renderer ↓</a></div>
+<details><summary>Read the STL parser</summary><pre class="terminal"><code>def read_mesh(path):
+    &quot;&quot;&quot;Load binary STL triangles and centre the mesh at its bounds.&quot;&quot;&quot;
+    mesh = path.read_bytes()
+    if len(mesh) &lt; 84:
+        raise ValueError(&quot;The file is too small to be a binary STL.&quot;)
+    count = struct.unpack_from(&quot;&lt;I&quot;, mesh, 80)[0]
+    if not count or len(mesh) != 84 + count * 50:
+        raise ValueError(&quot;The STL triangle count does not match the file length.&quot;)
+
+    record = np.dtype([
+        (&quot;normal&quot;, &quot;&lt;f4&quot;, 3),
+        (&quot;vertices&quot;, &quot;&lt;f4&quot;, (3, 3)),
+        (&quot;attribute&quot;, &quot;&lt;u2&quot;),
+    ])
+    triangles = np.frombuffer(mesh, dtype=record, offset=84)[&quot;vertices&quot;].astype(float)
+    centre = (triangles.max(axis=(0, 1)) + triangles.min(axis=(0, 1))) / 2
+    return triangles - centre</code></pre></details>
+</article></section>
+</main>
+<footer class="wrap"><span class="label">© 2026 AMINATA GAYE</span><a class="btn btn-ghost" href="../index.html#robotic-arm-project">← Back to projects</a></footer>
+</body></html>

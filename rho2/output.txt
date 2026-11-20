@@ -1,0 +1,69 @@
+
+==================================================
+             CIRCUIT SIMULATOR 
+==================================================
+1. Resistor Network Analyser (C5)
+2. Fourier Wave Simulator (C2)
+3. Logic Gate Array Simulator (SOP)
+4. Exit
+Choose an option (1-4): 
+Enter netlist filename (e.g., example2.cir): 
+==============================
+   CIRCUIT ANALYSIS RESULTS
+==============================
+ Voltage sources: 1
+ Current sources: 0
+       Resistors: 3
+           Nodes: 3
+------------------------------
+ Node   0 = 0.000000 V
+ Node   1 = -12.000000 V
+ Node   2 = -6.000000 V
+------------------------------
+ I(V1)   =   0.006000 A
+==============================
+
+==================================================
+             CIRCUIT SIMULATOR 
+==================================================
+1. Resistor Network Analyser (C5)
+2. Fourier Wave Simulator (C2)
+3. Logic Gate Array Simulator (SOP)
+4. Exit
+Choose an option (1-4): 
+Enter inputs (0/1):
+A = B = C = Output x = 0
+Test again? (y/n): 
+==================================================
+             CIRCUIT SIMULATOR 
+==================================================
+1. Resistor Network Analyser (C5)
+2. Fourier Wave Simulator (C2)
+3. Logic Gate Array Simulator (SOP)
+4. Exit
+Choose an option (1-4): 
+=== Fourier Wave Simulator ===
+1. Pure Sine Wave (b1 = 1)
+2. Square Wave (3 odd harmonics)
+3. Cosine Wave (a1 = 1)
+4. Sawtooth Wave (alternating signs)
+Choice: 
+Enter number of samples to plot (e.g., 250):        1   0.521 |                                                                                               *
+       2   0.542 |                                                                                                   *
+       3   0.563 |                                                                                                       *
+       4   0.583 |                                                                                                           *
+       5   0.604 |                                                                                                              *
+       6   0.624 |                                                                                                                  *
+       7   0.645 |                                                                                                                      *
+       8   0.664 |                                                                                                                         *
+       9   0.684 |                                                                                                                             *
+      10   0.703 |---                                                                                                                              *
+
+==================================================
+             CIRCUIT SIMULATOR 
+==================================================
+1. Resistor Network Analyser (C5)
+2. Fourier Wave Simulator (C2)
+3. Logic Gate Array Simulator (SOP)
+4. Exit
+Choose an option (1-4): Goodbye!

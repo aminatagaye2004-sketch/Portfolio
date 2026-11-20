@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Rocker-Bogie Rover &amp; Control GUI — Aminata Gaye</title><link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #10151c;
+    --bg-alt: #141b24;
+    --surface: #1b2531;
+    --surface-2: #212c3a;
+    --line: #2c3846;
+    --line-soft: #212a35;
+    --text: #e9e6dd;
+    --text-dim: #98a2b0;
+    --text-faint: #5f6b79;
+    --copper: #c97c4c;
+    --copper-soft: rgba(201,124,76,0.14);
+    --blue: #6fa8c0;
+    --blue-soft: rgba(111,168,192,0.14);
+    --amber: #d9a441;
+    --radius: 2px;
+    --maxw: 1120px;
+  }
+
+  *{ box-sizing: border-box; }
+  html{ scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce){
+    html{ scroll-behavior: auto; }
+    *{ animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+  }
+
+  body{
+    margin:0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    background-image:
+      linear-gradient(var(--line-soft) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
+    background-size: 48px 48px;
+    background-position: -1px -1px;
+  }
+
+  a{ color: inherit; }
+  h1,h2,h3{ font-family: 'Space Grotesk', sans-serif; margin: 0; letter-spacing: -0.01em; }
+
+  .label{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+
+  .wrap{ max-width: var(--maxw); margin: 0 auto; padding: 0 28px; }
+
+  /* ---------- NAV ---------- */
+  nav{
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(16,21,28,0.88);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+  }
+  nav .wrap{ display:flex; align-items:center; justify-content:space-between; height:64px; }
+  .nav-mark{ display:flex; align-items:center; gap:10px; font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--text-dim); }
+  .nav-mark .dot{ width:8px; height:8px; border:1.5px solid var(--copper); border-radius:50%; position:relative; }
+  .nav-mark .dot::after{ content:""; position:absolute; inset:2px; background:var(--copper); border-radius:50%; }
+  .nav-links{ display:flex; gap: 28px; list-style:none; margin:0; padding:0; }
+  .nav-links a{
+    text-decoration:none; font-family:'IBM Plex Mono', monospace; font-size:12.5px;
+    letter-spacing:0.08em; text-transform:uppercase; color: var(--text-dim);
+    padding: 4px 2px; border-bottom: 1px solid transparent;
+    transition: color .15s ease, border-color .15s ease;
+  }
+  .nav-links a:hover, .nav-links a:focus-visible{ color: var(--copper); border-color: var(--copper); }
+  .nav-cta{
+    font-family:'IBM Plex Mono', monospace; font-size:12px; text-transform:uppercase; letter-spacing:.08em;
+    color: var(--bg); background: var(--copper); padding: 8px 14px; text-decoration:none;
+    border-radius: var(--radius);
+  }
+  .nav-toggle{ display:none; }
+
+  a:focus-visible, button:focus-visible{ outline: 2px solid var(--blue); outline-offset: 3px; }
+
+  /* ---------- HERO / TITLE BLOCK ---------- */
+  .hero{
+    position: relative;
+    border-bottom: 1px solid var(--line);
+    padding: 64px 0 0 0;
+  }
+  .crop{
+    position:absolute; width:18px; height:18px; opacity:0.55;
+  }
+  .crop::before, .crop::after{ content:""; position:absolute; background: var(--text-faint); }
+  .crop::before{ width:100%; height:1px; top:50%; }
+  .crop::after{ width:1px; height:100%; left:50%; }
+  .crop.tl{ top:14px; left:14px; }
+  .crop.tr{ top:14px; right:14px; }
+
+  .hero-inner{ padding: 40px 0 56px; position:relative; }
+  .hero-eyebrow{
+    display:flex; align-items:center; gap:10px; margin-bottom:22px;
+  }
+  .hero-eyebrow .rule{ flex:1; height:1px; background: var(--line); }
+
+  .hero h1{
+    font-size: clamp(44px, 8vw, 84px);
+    font-weight: 700;
+    line-height: 0.98;
+    color: var(--text);
+  }
+  .hero h1 span{ color: var(--copper); }
+
+  .hero-sub{
+    margin-top: 18px;
+    max-width: 560px;
+    font-size: 17px;
+    color: var(--text-dim);
+  }
+
+  .hero-actions{ display:flex; gap:14px; margin-top: 34px; flex-wrap: wrap; }
+  .btn{
+    font-family:'IBM Plex Mono', monospace; font-size:12.5px; text-transform:uppercase; letter-spacing:.08em;
+    padding: 13px 22px; text-decoration:none; border-radius: var(--radius);
+    display:inline-flex; align-items:center; gap:8px;
+    transition: transform .15s ease, border-color .15s ease, background .15s ease;
+  }
+  .btn-primary{ background: var(--copper); color: var(--bg); }
+  .btn-primary:hover{ transform: translateY(-1px); }
+  .btn-ghost{ border: 1px solid var(--line); color: var(--text); }
+  .btn-ghost:hover{ border-color: var(--blue); color: var(--blue); }
+
+  /* title block strip */
+  .titleblock{
+    border-top: 1px solid var(--line);
+    display:grid;
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .tb-cell{
+    padding: 16px 20px;
+    border-right: 1px solid var(--line);
+  }
+  .tb-cell:last-child{ border-right:none; }
+  .tb-cell .label{ margin-bottom:6px; }
+  .tb-cell .val{ font-family:'IBM Plex Mono', monospace; font-size:13.5px; color: var(--text); }
+  .tb-cell .val.copper{ color: var(--copper); }
+
+  /* ---------- SECTION SHELL ---------- */
+  section{ padding: 84px 0; border-bottom: 1px solid var(--line); position:relative; }
+  section:last-of-type{ border-bottom:none; }
+  .sec-head{ display:flex; align-items:baseline; gap:16px; margin-bottom: 44px; }
+  .sec-num{ font-family:'IBM Plex Mono', monospace; color: var(--copper); font-size: 13px; }
+  .sec-head h2{ font-size: clamp(26px, 4vw, 36px); }
+  .sec-head .rule{ flex:1; height:1px; background: var(--line); }
+
+  /* ---------- ABOUT ---------- */
+  .about-grid{ display:grid; grid-template-columns: 1.3fr 1fr; gap: 56px; }
+  .about-text p{ color: var(--text-dim); font-size: 16px; margin: 0 0 16px; max-width: 560px; }
+  .about-text strong{ color: var(--text); font-weight: 600; }
+
+  .spec-sheet{ border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+  .spec-sheet .sh{
+    padding: 14px 18px; border-bottom: 1px solid var(--line);
+    font-family:'IBM Plex Mono', monospace; font-size:12px; letter-spacing:.1em; text-transform:uppercase; color: var(--text-faint);
+  }
+  .spec-row{
+    display:flex; justify-content:space-between; gap: 12px;
+    padding: 13px 18px; border-bottom: 1px solid var(--line-soft);
+    font-size: 14px;
+  }
+  .spec-row:last-child{ border-bottom:none; }
+  .spec-row .k{ color: var(--text-faint); font-family:'IBM Plex Mono', monospace; font-size:12.5px; }
+  .spec-row .v{ color: var(--text); text-align:right; }
+
+  /* ---------- SKILLS ---------- */
+  .skills-grid{ display:grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+  .skill-col{ background: var(--bg); padding: 28px 26px; }
+  .skill-col .tag{
+    display:inline-block; font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:.1em;
+    text-transform:uppercase; color: var(--bg); background: var(--blue); padding: 3px 8px; border-radius: var(--radius); margin-bottom: 16px;
+  }
+  .skill-col:nth-child(1) .tag{ background: var(--copper); }
+  .skill-col:nth-child(3) .tag{ background: var(--amber); }
+  .skill-col h3{ font-size: 19px; margin-bottom: 14px; }
+  .skill-col ul{ list-style:none; margin:0; padding:0; }
+  .skill-col li{
+    font-size: 14.5px; color: var(--text-dim); padding: 8px 0; border-top: 1px solid var(--line-soft);
+    display:flex; align-items:center; gap:10px;
+  }
+  .skill-col li:first-of-type{ border-top:none; }
+  .skill-col li::before{ content:""; width:5px; height:5px; background: var(--text-faint); flex-shrink:0; }
+
+  /* ---------- PROJECTS ---------- */
+  .projects{ display:flex; flex-direction:column; gap: 22px; }
+  .project-card{
+    border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface);
+    display:grid; grid-template-columns: 220px 1fr; position:relative; overflow:hidden;
+  }
+  .project-card.featured{ border-color: var(--copper); }
+  .pc-side{
+    background: var(--surface-2); border-right: 1px solid var(--line);
+    padding: 24px 20px; display:flex; flex-direction:column; justify-content:space-between;
+  }
+  .pc-index{ font-family:'IBM Plex Mono', monospace; font-size: 34px; color: var(--line); font-weight:600; }
+  .status{
+    font-family:'IBM Plex Mono', monospace; font-size: 11px; text-transform:uppercase; letter-spacing:.08em;
+    padding: 5px 9px; border-radius: var(--radius); width: fit-content;
+  }
+  .status.progress{ background: var(--copper-soft); color: var(--copper); border:1px solid rgba(201,124,76,0.4); }
+  .status.done{ background: var(--blue-soft); color: var(--blue); border:1px solid rgba(111,168,192,0.4); }
+  .status.planned{ background: rgba(152,162,176,0.1); color: var(--text-faint); border:1px solid var(--line); }
+
+  .pc-main{ padding: 26px 28px; }
+  .pc-top{ display:flex; align-items:flex-start; justify-content:space-between; gap: 16px; margin-bottom: 10px; }
+  .pc-main h3{ font-size: 22px; }
+  .featured-flag{
+    font-family:'IBM Plex Mono', monospace; font-size: 10.5px; text-transform:uppercase; letter-spacing:.1em;
+    color: var(--copper); border: 1px solid var(--copper); padding: 3px 8px; border-radius: var(--radius); white-space:nowrap;
+  }
+  .pc-main p{ color: var(--text-dim); font-size: 14.5px; margin: 0 0 16px; max-width: 620px; }
+  .pc-tags{ display:flex; flex-wrap:wrap; gap: 8px; }
+  .pc-tags span{
+    font-family:'IBM Plex Mono', monospace; font-size: 11.5px; color: var(--text-faint);
+    border: 1px solid var(--line); padding: 4px 9px; border-radius: var(--radius);
+  }
+
+  @media (max-width: 720px){
+    .project-card{ grid-template-columns: 1fr; }
+    .pc-side{ flex-direction:row; border-right:none; border-bottom:1px solid var(--line); align-items:center; }
+  }
+
+  /* ---------- CONTACT ---------- */
+  .contact-block{
+    display:grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items:end;
+  }
+  .contact-block h2{ font-size: clamp(28px,5vw,44px); max-width: 480px; }
+  .contact-sub{ margin-top: 14px; max-width: 420px; color: var(--text-dim); font-size: 15px; }
+  .contact-links{ display:flex; flex-direction:column; gap: 0; }
+  .contact-links a{
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 16px 0; border-top: 1px solid var(--line);
+    text-decoration:none; font-family:'IBM Plex Mono', monospace; font-size: 14px; color: var(--text);
+    transition: color .15s ease, padding-left .15s ease;
+  }
+  .contact-links a:last-child{ border-bottom: 1px solid var(--line); }
+  .contact-links a .arrow{ color: var(--text-faint); transition: transform .15s ease; }
+  .contact-links a:hover{ color: var(--copper); padding-left: 6px; }
+  .contact-links a:hover .arrow{ transform: translateX(3px); color: var(--copper); }
+
+  footer{
+    padding: 28px 0; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap: 10px;
+  }
+  footer .label{ color: var(--text-faint); }
+
+  @media (max-width: 860px){
+    .titleblock{ grid-template-columns: repeat(2, 1fr); }
+    .tb-cell:nth-child(2){ border-right:none; }
+    .about-grid{ grid-template-columns: 1fr; }
+    .skills-grid{ grid-template-columns: 1fr; }
+    .contact-block{ grid-template-columns: 1fr; }
+    .nav-links{ display:none; }
+  }
+
+.detail-hero{padding:56px 28px 36px}.detail-hero h1{font-size:clamp(36px,7vw,66px);margin:18px 0}.intro{max-width:700px;color:var(--text-dim);font-size:18px}.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}.panel{padding:28px;background:var(--surface);border:1px solid var(--line);min-width:0}.panel h3{margin-bottom:14px}.panel p,.panel li{color:var(--text-dim)}.panel ol{padding-left:22px}.panel li{margin:12px 0}.detail-section{padding:42px 0}.detail-section .sec-head{margin-bottom:24px}.terminal{background:var(--bg);padding:20px;border:1px solid var(--line);overflow:auto;font:13px/1.65 'IBM Plex Mono',monospace;color:var(--blue)}.caption{font-size:13px;color:var(--text-dim)}.detail-nav{display:flex;gap:16px;align-items:center;flex-wrap:wrap}.detail-nav a{font:12px 'IBM Plex Mono',monospace;text-decoration:none;color:var(--blue)}details summary{cursor:pointer;color:var(--blue);padding:14px 0}section{scroll-margin-top:85px}@media(max-width:720px){.detail-grid{grid-template-columns:1fr}.panel{padding:20px}.detail-nav .nav-mark{display:none}.terminal{font-size:11px;padding:12px}}
+.experiment-gallery{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}.experiment-gallery figure{margin:0;background:var(--surface);border:1px solid var(--line);padding:16px;min-width:0}.experiment-photo{aspect-ratio:1;overflow:hidden;background:var(--bg)}.experiment-photo img{width:100%;height:100%;object-fit:contain;transform:rotate(90deg)}.experiment-gallery figcaption{font-size:14px;color:var(--text-dim);margin-top:14px}@media(max-width:720px){.experiment-gallery{grid-template-columns:1fr}}
+
+.chart { margin: 20px 0 0; }
+.chart img { display: block; width: 100%; height: auto; border: 1px solid var(--line); }
+.chart figcaption { margin-top: 10px; color: var(--text-dim); font-size: 14px; }
+.data-table { width: 100%; border-collapse: collapse; font: 13px/1.5 'IBM Plex Mono', monospace; }
+.data-table td, .data-table th { border-bottom: 1px solid var(--line); padding: 8px; text-align: right; }
+.data-table td:first-child, .data-table th:first-child { text-align: left; }
+.table-wrap { overflow-x: auto; }
+.detail-grid > * { min-width: 0; }
+.source-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+.source-links a { overflow-wrap: anywhere; }
+.cad-views details { margin-top: 12px; border-top: 1px solid var(--line); }
+.cad-views summary:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
+
+.detail-hero h1 { line-height: 1.12; }
+.cad-views .chart img { max-height: 560px; object-fit: contain; background: var(--bg); }
+</style></head><body><nav><div class="wrap detail-nav"><a href="../index.html#rover-project">← All projects</a><span class="nav-mark">AMINATA GAYE / PROJECT 05</span><a href="#experiment">LiDAR experiment ↓</a></div></nav>
+<header class="detail-hero wrap"><div class="label">Robotics / Hardware integration / Control software</div><h1>Rocker-Bogie Rover &amp; Control GUI</h1><span class="status done">Completed</span><p class="intro">A team rover build brought together through electronics integration, control software and system testing, with a Python interface for six-wheel motor control and sensor monitoring.</p><div class="pc-tags"><span>Python / Tkinter</span><span>Serial / pyserial</span><span>Motor Control</span><span>IMU</span><span>Distance Sensing</span></div><div class="hero-actions"><a class="btn btn-primary" href="#experiment">Explore the experiment ↓</a><a class="btn btn-ghost" href="#software">Control GUI ↓</a><a class="btn btn-ghost" href="rover_gui.py" download>Download Python source ↓</a></div></header>
+<main class="wrap"><section class="detail-section"><div class="sec-head"><span class="sec-num">01</span><h2>One integrated project</h2><span class="rule"></span></div><div class="panel"><h3>Rover platform and software contribution</h3><p>Designed and integrated an autonomous rover platform as part of a multidisciplinary engineering team. Contributions included software development, electronics integration, GUI development and system testing, connecting hardware and software subsystems.</p><p>The control panel below was developed as a software contribution during the rover project; the final rover used a different interface. This showcase uses the serial-based <code>rover_gui.py</code> implementation from the GUIrover folder.</p></div></section>
+<section class="detail-section" id="software"><div class="sec-head"><span class="sec-num">02</span><h2>Inside the control panel</h2><span class="rule"></span></div><div class="detail-grid"><article class="panel"><h3>Six-motor control</h3><p>Six sliders command motors M1–M6 independently from −100% to +100%. A master-speed setting supports all-forward and all-backward actions; All Stop sends zero speed to every motor.</p><p>Keyboard shortcuts: <strong>W</strong> for forward, <strong>S</strong> for backward, <strong>Space</strong> to stop, and <strong>R</strong> to reset.</p></article><article class="panel"><h3>Sensor dashboard</h3><p>Front and rear VL53L0X distance displays sit alongside MPU6050 telemetry: roll, pitch, yaw, acceleration, gyroscope readings and temperature.</p><p>A circular attitude display uses a moving horizon, pitch marker and yaw arrow to visualise orientation.</p></article><article class="panel"><h3>Serial integration</h3><p>The GUI discovers serial ports and connects at 115,200 baud. Motor commands use the form <code>M:M1:50</code>, followed by a newline. Incoming comma-separated key:value fields update the telemetry displays.</p><p>A background thread reads serial data, and a timestamped activity log records commands and connection events.</p></article><article class="panel"><h3>Test mode</h3><p>Test Mode is enabled by default. Clicking Connect in this mode starts simulated distance and IMU updates without opening a hardware serial connection. Motor commands are logged for interface testing.</p><p class="caption">Simulated readings demonstrate the interface; they are not measured rover performance.</p></article></div></section>
+<section class="detail-section" id="experiment"><div class="sec-head"><span class="sec-num">03</span><h2>LiDAR / ToF experiment</h2><span class="rule"></span></div><div class="panel"><h3>How do distance and scan speed affect sensing?</h3><p>My individual investigation characterised the VL53L0X Time-of-Flight sensor for rover obstacle detection, comparing static measurements with servo-driven angular scans. I built the test setup, collected repeated readings and analysed mean error and standard deviation.</p><p><a class="btn btn-primary" href="experiment/lidar-experiment-report.pdf" target="_blank" rel="noopener">Read the experiment report ↗</a></p></div><div class="detail-grid" style="margin-top:24px"><article class="panel"><h3>Static distance testing</h3><p>An Arduino UNO, breadboard-mounted sensor and I²C LCD were used with a flat target at 200, 500, 800 and 1,000 mm. At each distance, 20 valid readings were recorded per trial across three trials.</p><p>The report’s average standard deviation increased from about 4.4 mm at 200 mm to 10.7 mm at 1,000 mm, showing reduced repeatability at longer ranges.</p></article><article class="panel"><h3>Dynamic scanning</h3><p>The sensor was secured to a servo using stripboard and wire loops. It swept from 60° to 120° with a target at 500 mm; 20 valid measurements were recorded at the centre position for each speed setting.</p><p>Reported mean error increased from approximately 0.62 mm at 33.3°/s to 4.92 mm at 800°/s. Speeds were estimated from programmed steps and delays, rather than measured directly.</p></article></div><div class="experiment-gallery" style="margin-top:24px">
+<figure><a href="experiment/static-setup.jpg" target="_blank" rel="noopener" aria-label="Open static test setup photograph"><div class="experiment-photo"><img src="experiment/static-setup.jpg" alt="Arduino, breadboard-mounted VL53L0X sensor and LCD in the static test setup" loading="lazy"></div></a><figcaption>Static sensor setup with Arduino UNO and LCD. Photograph from report Figure 1.</figcaption></figure>
+<figure><a href="experiment/sensor-mount.jpg" target="_blank" rel="noopener" aria-label="Open sensor mounting photograph"><div class="experiment-photo"><img src="experiment/sensor-mount.jpg" alt="Close-up of the sensor mounted on stripboard for the servo scanning assembly" loading="lazy"></div></a><figcaption>Mechanical mounting for the scanning sensor. Photograph from report Figure 2.</figcaption></figure>
+<figure><a href="experiment/dynamic-setup.jpg" target="_blank" rel="noopener" aria-label="Open dynamic test setup photograph"><div class="experiment-photo"><img src="experiment/dynamic-setup.jpg" alt="Servo-mounted sensor facing a flat wooden target on the laboratory bench" loading="lazy"></div></a><figcaption>Dynamic test with the target at 500 mm. Photograph from report Figure 4.</figcaption></figure></div><div class="panel" style="margin-top:24px"><h3>What this informed</h3><p>The report recommends a moderate scan speed around 100°/s as a practical balance between responsiveness and measurement reliability. Invalid readings with RangeStatus = 4 and out-of-range values were discarded. The experiment helped inform the rover’s sensing strategy and filtering approach.</p><p class="caption">Findings apply to the tested indoor setup and target material. The original report is provided unchanged; this summary uses its distance and mean-error values because some percentage-error entries are inconsistent with the tabulated means.</p></div></section><section class="detail-section"><div class="sec-head"><span class="sec-num">04</span><h2>Measured distance bias while scanning</h2><span class="rule"></span></div>
+<article class="panel"><figure class="chart"><img src="scan-bias.png" alt="Raw distance bias increases overall with nominal scan speed in both evaluation trials."><figcaption>Mean raw reading minus the 500 mm reference. At 800°/s the two trials measured +5.75 mm and +4.10 mm of mean signed error. The horizontal axis lists the four tested settings.</figcaption></figure><p>Read the <a href="../kalman-filter/index.html">Kalman filter study</a> for the same readings, calibration method and comparison with filtered estimates.</p></article></section>
+<section class="detail-section" id="source"><div class="sec-head"><span class="sec-num">05</span><h2>Run and explore</h2><span class="rule"></span></div><div class="panel"><p>Use Python with Tkinter installed. Download the source, open a terminal in its folder, and run:</p><pre class="terminal">python3 -m pip install pyserial
+python3 rover_gui.py</pre><p>Leave Test Mode selected and click Connect to explore the simulated telemetry. For hardware operation, the rover firmware must implement this script’s serial command and telemetry formats.</p><p><a class="btn btn-ghost" href="requirements.txt" download>Download requirements ↓</a></p><p class="caption">The downloadable script is an unchanged copy of GUIrover/rover_gui.py.</p><details><summary>View Python source</summary><pre class="terminal"><code>import tkinter as tk
+from tkinter import ttk, messagebox
+import serial
+import serial.tools.list_ports
+import threading
+import time
+import random
+import math
+
+class RoverGUI:
+    def __init__(self, root):
+        self.root = root
+        self.root.title(&quot;6-Wheel Rover Control Panel - Individual Motor Control&quot;)
+        self.root.geometry(&quot;1400x900&quot;)
+        self.root.configure(bg=&#x27;#2C3E50&#x27;)
+        
+        # Serial connection
+        self.serial_port = None
+        self.running = False
+        
+        # Test mode
+        self.test_mode = tk.BooleanVar(value=True)
+        
+        # Data variables
+        self.distance1 = tk.StringVar(value=&quot;---&quot;)
+        self.distance2 = tk.StringVar(value=&quot;---&quot;)
+        
+        # IMU Data
+        self.roll = tk.StringVar(value=&quot;---&quot;)
+        self.pitch = tk.StringVar(value=&quot;---&quot;)
+        self.yaw = tk.StringVar(value=&quot;---&quot;)
+        self.ax = tk.StringVar(value=&quot;---&quot;)
+        self.ay = tk.StringVar(value=&quot;---&quot;)
+        self.az = tk.StringVar(value=&quot;---&quot;)
+        self.gx = tk.StringVar(value=&quot;---&quot;)
+        self.gy = tk.StringVar(value=&quot;---&quot;)
+        self.gz = tk.StringVar(value=&quot;---&quot;)
+        self.temp = tk.StringVar(value=&quot;---&quot;)
+        
+        # Motor speeds (0-100%)
+        self.motor_speeds = {
+            &#x27;M1&#x27;: 0, &#x27;M2&#x27;: 0, &#x27;M3&#x27;: 0,  # Left Front, Left Middle, Left Rear
+            &#x27;M4&#x27;: 0, &#x27;M5&#x27;: 0, &#x27;M6&#x27;: 0   # Right Front, Right Middle, Right Rear
+        }
+        
+        # Motor names for display
+        self.motor_names = {
+            &#x27;M1&#x27;: &quot;Motor 1 (Left Front)&quot;,
+            &#x27;M2&#x27;: &quot;Motor 2 (Left Middle)&quot;,
+            &#x27;M3&#x27;: &quot;Motor 3 (Left Rear)&quot;,
+            &#x27;M4&#x27;: &quot;Motor 4 (Right Front)&quot;,
+            &#x27;M5&#x27;: &quot;Motor 5 (Right Middle)&quot;,
+            &#x27;M6&#x27;: &quot;Motor 6 (Right Rear)&quot;
+        }
+        
+        # For IMU visualization
+        self.current_roll = 0
+        self.current_pitch = 0
+        self.current_yaw = 0
+        
+        self.connection_status = tk.StringVar(value=&quot;Disconnected&quot;)
+        
+        # Create widgets
+        self.create_widgets()
+        
+        # Start test mode updater
+        self.start_test_mode_updater()
+        
+        self.add_log(&quot;GUI initialized successfully - Individual Motor Control Mode&quot;)
+        
+    def create_widgets(self):
+        # Main container
+        main_container = tk.Frame(self.root, bg=&#x27;#2C3E50&#x27;)
+        main_container.pack(fill=&#x27;both&#x27;, expand=True, padx=10, pady=10)
+        
+        # ===== TOP SECTION: Connection =====
+        top_frame = tk.Frame(main_container, bg=&#x27;#2C3E50&#x27;)
+        top_frame.pack(fill=&#x27;x&#x27;, pady=(0, 10))
+        
+        self.create_connection_section(top_frame)
+        
+        # ===== MIDDLE SECTION: Rover Visual and Sensors =====
+        middle_frame = tk.Frame(main_container, bg=&#x27;#2C3E50&#x27;)
+        middle_frame.pack(fill=&#x27;both&#x27;, expand=True, pady=10)
+        
+        # Left: Rover Visualization with Motor Controls
+        self.create_rover_with_controls(middle_frame)
+        
+        # Right: Sensor Data
+        right_sensor_frame = tk.Frame(middle_frame, bg=&#x27;#2C3E50&#x27;)
+        right_sensor_frame.pack(side=&#x27;right&#x27;, fill=&#x27;both&#x27;, expand=True, padx=(10, 0))
+        
+        self.create_distance_section(right_sensor_frame)
+        self.create_imu_section(right_sensor_frame)
+        
+        # ===== BOTTOM SECTION: Log =====
+        self.create_log_section(main_container)
+        
+        # ===== KEYBOARD BINDINGS =====
+        self.setup_keyboard_controls()
+        
+    def create_connection_section(self, parent):
+        conn_frame = tk.LabelFrame(parent, text=&quot;Connection Settings&quot;, 
+                                   bg=&#x27;#34495E&#x27;, fg=&#x27;white&#x27;, 
+                                   font=(&#x27;Arial&#x27;, 11, &#x27;bold&#x27;), 
+                                   padx=15, pady=10)
+        conn_frame.pack(fill=&#x27;x&#x27;, expand=True)
+        
+        tk.Label(conn_frame, text=&quot;Serial Port:&quot;, bg=&#x27;#34495E&#x27;, fg=&#x27;white&#x27;, 
+                font=(&#x27;Arial&#x27;, 10)).grid(row=0, column=0, padx=5, pady=5, sticky=&#x27;w&#x27;)
+        
+        self.port_combo = ttk.Combobox(conn_frame, width=15, state=&#x27;readonly&#x27;)
+        self.port_combo.grid(row=0, column=1, padx=5, pady=5)
+        self.refresh_ports()
+        
+        refresh_btn = tk.Button(conn_frame, text=&quot;🔄&quot;, 
+                               command=self.refresh_ports,
+                               bg=&#x27;#3498DB&#x27;, fg=&#x27;white&#x27;, 
+                               font=(&#x27;Arial&#x27;, 9, &#x27;bold&#x27;),
+                               relief=&#x27;raised&#x27;, width=3)
+        refresh_btn.grid(row=0, column=2, padx=5, pady=5)
+        
+        self.connect_btn = tk.Button(conn_frame, text=&quot;Connect&quot;, 
+                                     command=self.toggle_connection,
+                                     bg=&#x27;#27AE60&#x27;, fg=&#x27;white&#x27;, 
+                                     font=(&#x27;Arial&#x27;, 10, &#x27;bold&#x27;),
+                                     relief=&#x27;raised&#x27;, padx=20, pady=5)
+        self.connect_btn.grid(row=0, column=3, padx=5, pady=5)
+        
+        status_frame = tk.Frame(conn_frame, bg=&#x27;#34495E&#x27;)
+        status_frame.grid(row=0, column=4, padx=20, pady=5)
+        
+        tk.Label(status_frame, text=&quot;Status:&quot;, bg=&#x27;#34495E&#x27;, fg=&#x27;white&#x27;, 
+                font=(&#x27;Arial&#x27;, 10)).pack(side=&#x27;left&#x27;, padx=(0, 5))
+        
+        self.status_canvas = tk.Canvas(status_frame, width=15, height=15, 
+                                      bg=&#x27;#34495E&#x27;, highlightthickness=0)
+        self.status_canvas.pack(side=&#x27;left&#x27;, padx=(0, 5))
+        self.status_indicator = self.status_canvas.create_oval(2, 2, 13, 13, fill=&#x27;red&#x27;)
+        
+        self.status_label = tk.Label(status_frame, textvariable=self.connection_status,
+                                     bg=&#x27;#34495E&#x27;, fg=&#x27;#E74C3C&#x27;, 
+                                     font=(&#x27;Arial&#x27;, 10, &#x27;bold&#x27;))
+        self.status_label.pack(side=&#x27;left&#x27;)
+        
+        test_check = tk.Checkbutton(conn_frame, text=&quot;Test Mode&quot;, 
+                                   variable=self.test_mode,
+                                   bg=&#x27;#34495E&#x27;, fg=&#x27;white&#x27;, 
+                                   selectcolor=&#x27;#2C3E50&#x27;,
+                                   font=(&#x27;Arial&#x27;, 9),
+                                   command=self.toggle_test_mode)
+        test_check.grid(row=0, column=5, padx=20, pady=5)
+        
+    def create_rover_with_controls(self, parent):
+        rover_frame = tk.LabelFrame(parent, text=&quot;6-Wheel Rover - Individual Motor Control&quot;, 
+                                   bg=&#x27;#34495E&#x27;, fg=&#x27;white&#x27;, 
+                                   font=(&#x27;Arial&#x27;, 12, &#x27;bold&#x27;), 
+                                   padx=15, pady=15)
+        rover_frame.pack(side=&#x27;left&#x27;, fill=&#x27;both&#x27;, expand=True)
+        
+        # Canvas for rover visualization
+        self.rover_canvas = tk.Canvas(rover_frame, width=500, height=300, 
+                                      bg=&#x27;#2C3E50&#x27;, highlightthickness=2,
+                                      highlightbackground=&#x27;#3498DB&#x27;)
+        self.rover_canvas.pack(pady=10)
+        
+        # Draw rover
+        self.draw_rover()
+        
+        # Motor control sliders
+        control_frame = tk.Frame(rover_frame, bg=&#x27;#34495E&#x27;)
+        control_frame.pack(fill=&#x27;x&#x27;, pady=10)
+        
+        # Left side motors (M1, M2, M3)
+        left_frame = tk.LabelFrame(control_frame, text=&quot;LEFT SIDE MOTORS&quot;, 
+                                   bg=&#x27;#2C3E50&#x27;, fg=&#x27;#3498DB&#x27;, 
+                                   font=(&#x27;Arial&#x27;, 10, &#x27;bold&#x27;))
+        left_frame.pack(side=&#x27;left&#x27;, fill=&#x27;both&#x27;, expand=True, padx=5)
+        
+        self.create_motor_slider(left_frame, &quot;Motor 1 (Left Front)&quot;, &#x27;M1&#x27;, 0, &#x27;#3498DB&#x27;)
+        self.create_motor_slider(left_frame, &quot;Motor 2 (Left Middle)&quot;, &#x27;M2&#x27;, 1, &#x27;#27AE60&#x27;)
+        self.create_motor_slider(left_frame, &quot;Motor 3 (Left Rear)&quot;, &#x27;M3&#x27;, 2, &#x27;#27AE60&#x27;)
+        
+        # Right side motors (M4, M5, M6)
+        right_frame = tk.LabelFrame(control_frame, text=&quot;RIGHT SIDE MOTORS&quot;, 
+                                    bg=&#x27;#2C3E50&#x27;, fg=&#x27;#E67E22&#x27;, 
+                                    font=(&#x27;Arial&#x27;, 10, &#x27;bold&#x27;))
+        right_frame.pack(side=&#x27;right&#x27;, fill=&#x27;both&#x27;, expand=True, padx=5)
+        
+        self.create_motor_slider(right_frame, &quot;Motor 4 (Right Front)&quot;, &#x27;M4&#x27;, 0, &#x27;#E67E22&#x27;)
+        self.create_motor_slider(right_frame, &quot;Motor 5 (Right Middle)&quot;, &#x27;M5&#x27;, 1, &#x27;#F39C12&#x27;)
+        self.create_motor_slider(right_frame, &quot;Motor 6 (Right Rear)&quot;, &#x27;M6&#x27;, 2, &#x27;#F39C12&#x27;)
+        
+        # Quick action buttons at bottom of rover frame
+        action_frame = tk.Frame(rover_frame, bg=&#x27;#34495E&#x27;)
+        action_frame.pack(fill=&#x27;x&#x27;, pady=10)
+        
+        button_config = {&#x27;width&#x27;: 10, &#x27;height&#x27;: 1, &#x27;font&#x27;: (&#x27;Arial&#x27;, 9, &#x27;bold&#x27;), &#x27;relief&#x27;: &#x27;raised&#x27;}
+        
+        tk.Button(action_frame, text=&quot;All Forward&quot;, bg=&#x27;#27AE60&#x27;, fg=&#x27;white&#x27;,
+                 command=self.all_forward, **button_config).pack(side=&#x27;left&#x27;, padx=5)
+        
+        tk.Button(action_frame, text=&quot;All Stop&quot;, bg=&#x27;#E74C3C&#x27;, fg=&#x27;white&#x27;,
+                 command=self.all_stop, **button_config).pack(side=&#x27;left&#x27;, padx=5)
+        
+        tk.Button(action_frame, text=&quot;All Backward&quot;, bg=&#x27;#F39C12&#x27;, fg=&#x27;white&#x27;,
+                 command=self.all_backward, **button_config).pack(side=&#x27;left&#x27;, padx=5)
+        
+        tk.Button(action_frame, text=&quot;Reset All&quot;, bg=&#x27;#3498DB&#x27;, fg=&#x27;white&#x27;,
+                 command=self.reset_all_motors, **button_config).pack(side=&#x27;left&#x27;, padx=5)
+        
+        # Master speed control
+        master_frame = tk.Frame(action_frame, bg=&#x27;#34495E&#x27;)
+        master_frame.pack(side=&#x27;right&#x27;, padx=10)
+        
+        tk.Label(master_frame, text=&quot;Master Speed:&quot;, bg=&#x27;#34495E&#x27;, fg=&#x27;white&#x27;, 
+                font=(&#x27;Arial&#x27;, 9)).pack(side=&#x27;left&#x27;)
+        
+        self.master_speed = tk.Scale(master_frame, from_=0, to=100, orient=&#x27;horizontal&#x27;,
+                                     bg=&#x27;#2C3E50&#x27;, fg=&#x27;white&#x27;, length=150,
+                                     command=self.update_master_speed)
+        self.master_speed.set(50)
+        self.master_speed.pack(side=&#x27;left&#x27;, padx=5)
+        
+        self.master_speed_label = tk.Label(master_frame, text=&quot;50%&quot;, bg=&#x27;#34495E&#x27;, fg=&#x27;#00FF00&#x27;,
+                                          font=(&#x27;Arial&#x27;, 9, &#x27;bold&#x27;))
+        self.master_speed_label.pack(side=&#x27;left&#x27;)
+        
+    def create_motor_slider(self, parent, label, motor_id, row, color):
+        &quot;&quot;&quot;Create a motor control slider&quot;&quot;&quot;
+        frame = tk.Frame(parent, bg=&#x27;#2C3E50&#x27;)
+        frame.pack(fill=&#x27;x&#x27;, pady=5, padx=10)
+        
+        # Motor label
+        tk.Label(frame, text=f&quot;{label}&quot;, bg=&#x27;#2C3E50&#x27;, fg=color, 
+                font=(&#x27;Arial&#x27;, 9, &#x27;bold&#x27;)).grid(row=0, column=0, sticky=&#x27;w&#x27;)
+        
+        # Speed value display
+        speed_var = tk.StringVar(value=&quot;0&quot;)
+        speed_label = tk.Label(frame, textvariable=speed_var, bg=&#x27;#1C2833&#x27;, fg=&#x27;#00FF00&#x27;,
+                              font=(&#x27;Courier&#x27;, 10, &#x27;bold&#x27;), width=4, relief=&#x27;sunken&#x27;)
+        speed_label.grid(row=0, column=2, padx=5)
+        tk.Label(frame, text=&quot;%&quot;, bg=&#x27;#2C3E50&#x27;, fg=&#x27;white&#x27;).grid(row=0, column=3)
+        
+        # Slider (0-100%)
+        slider = tk.Scale(frame, from_=-100, to=100, orient=&#x27;horizontal&#x27;,
+                         bg=&#x27;#2C3E50&#x27;, fg=&#x27;white&#x27;, highlightthickness=0,
+                         troughcolor=&#x27;#1C2833&#x27;, activebackground=color,
+                         length=150, command=lambda v, m=motor_id, sv=speed_var: self.update_motor_speed(m, v, sv))
+        slider.set(0)
+        slider.grid(row=1, column=0, columnspan=4, sticky=&#x27;ew&#x27;)
+        
+        # Store references
+        self.motor_sliders[motor_id] = slider
+        self.motor_speed_vars[motor_id] = speed_var
+        
+    def draw_rover(self):
+        &quot;&quot;&quot;Draw the rover with wheels labeled M1-M6&quot;&quot;&quot;
+        self.rover_canvas.delete(&quot;all&quot;)
+        
+        # Rover body
+        body_x1, body_y1 = 100, 80
+        body_x2, body_y2 = 400, 220
+        self.rover_canvas.create_rectangle(body_x1, body_y1, body_x2, body_y2,
+                                          fill=&#x27;#34495E&#x27;, outline=&#x27;#3498DB&#x27;, width=3)
+        
+        self.rover_canvas.create_text(250, 150, text=&quot;6-WHEEL ROVER&quot;, 
+                                      fill=&#x27;white&#x27;, font=(&#x27;Arial&#x27;, 14, &#x27;bold&#x27;))
+        
+        # Wheel positions with motor numbers
+        wheel_y = 150
+        wheel_positions = {
+            &#x27;M1&#x27;: (130, wheel_y),   # Left Front
+            &#x27;M2&#x27;: (210, wheel_y),   # Left Middle
+            &#x27;M3&#x27;: (290, wheel_y),   # Left Rear
+            &#x27;M4&#x27;: (370, wheel_y),   # Right Front
+            &#x27;M5&#x27;: (290, wheel_y),   # Right Middle
+            &#x27;M6&#x27;: (370, wheel_y)    # Right Rear
+        }
+        
+        # Draw wheels with motor numbers
+        for motor_id, (x, y) in wheel_positions.items():
+            color = &#x27;#3498DB&#x27; if motor_id in [&#x27;M1&#x27;, &#x27;M2&#x27;, &#x27;M3&#x27;] else &#x27;#E67E22&#x27;
+            
+            # Draw wheel
+            self.rover_canvas.create_oval(x-12, y-12, x+12, y+12, 
+                                         fill=color, outline=&#x27;white&#x27;, width=2)
+            
+            # Add motor number
+            self.rover_canvas.create_text(x, y+18, text=motor_id, 
+                                         fill=&#x27;white&#x27;, font=(&#x27;Arial&#x27;, 9, &#x27;bold&#x27;))
+        
+        # Add front indicator arrow
+        self.rover_canvas.create_polygon([250, 60, 240, 75, 260, 75], 
+                                         fill=&#x27;#F39C12&#x27;, outline=&#x27;white&#x27;)
+        self.rover_canvas.create_text(250, 50, text=&quot;FRONT&quot;, 
+                                      fill=&#x27;#F39C12&#x27;, font=(&#x27;Arial&#x27;, 9, &#x27;bold&#x27;))
+        
+    def create_distance_section(self, parent):
+        dist_frame = tk.LabelFrame(parent, text=&quot;Distance Sensors (VL53L0X)&quot;, 
+                                   bg=&#x27;#34495E&#x27;, fg=&#x27;white&#x27;, 
+                                   font=(&#x27;Arial&#x27;, 11, &#x27;bold&#x27;), 
+                                   padx=15, pady=10)
+        dist_frame.pack(fill=&#x27;x&#x27;, pady=(0, 10))
+        
+        # Sensor 1
+        sensor1_frame = tk.Frame(dist_frame, bg=&#x27;#2C3E50&#x27;, relief=&#x27;ridge&#x27;, bd=2)
+        sensor1_frame.pack(side=&#x27;left&#x27;, fill=&#x27;both&#x27;, expand=True, padx=5, pady=5)
+        
+        tk.Label(sensor1_frame, text=&quot;Sensor 1 (Front)&quot;, 
+                bg=&#x27;#2C3E50&#x27;, fg=&#x27;#3498DB&#x27;, 
+                font=(&#x27;Arial&#x27;, 10, &#x27;bold&#x27;)).pack(pady=5)
+        
+        distance1_display = tk.Label(sensor1_frame, textvariable=self.distance1, 
+                                    bg=&#x27;#1C2833&#x27;, fg=&#x27;#00FF00&#x27;, 
+                                    font=(&#x27;Courier&#x27;, 20, &#x27;bold&#x27;),
+                                    relief=&#x27;sunken&#x27;, bd=3, padx=15, pady=8)
+        distance1_display.pack(pady=5)
+        tk.Label(sensor1_frame, text=&quot;mm&quot;, bg=&#x27;#2C3E50&#x27;, fg=&#x27;white&#x27;).pack()
+        
+        # Sensor 2
+        sensor2_frame = tk.Frame(dist_frame, bg=&#x27;#2C3E50&#x27;, relief=&#x27;ridge&#x27;, bd=2)
+        sensor2_frame.pack(side=&#x27;right&#x27;, fill=&#x27;both&#x27;, expand=True, padx=5, pady=5)
+        
+        tk.Label(sensor2_frame, text=&quot;Sensor 2 (Rear)&quot;, 
+                bg=&#x27;#2C3E50&#x27;, fg=&#x27;#E67E22&#x27;, 
+                font=(&#x27;Arial&#x27;, 10, &#x27;bold&#x27;)).pack(pady=5)
+        
+        distance2_display = tk.Label(sensor2_frame, textvariable=self.distance2, 
+                                    bg=&#x27;#1C2833&#x27;, fg=&#x27;#00FF00&#x27;, 
+                                    font=(&#x27;Courier&#x27;, 20, &#x27;bold&#x27;),
+                                    relief=&#x27;sunken&#x27;, bd=3, padx=15, pady=8)
+        distance2_display.pack(pady=5)
+        tk.Label(sensor2_frame, text=&quot;mm&quot;, bg=&#x27;#2C3E50&#x27;, fg=&#x27;white&#x27;).pack()
+        
+    def create_imu_section(self, parent):
+        imu_frame = tk.LabelFrame(parent, text=&quot;IMU Sensor (MPU6050)&quot;, 
+                                  bg=&#x27;#34495E&#x27;, fg=&#x27;white&#x27;, 
+                                  font=(&#x27;Arial&#x27;, 11, &#x27;bold&#x27;), 
+                                  padx=15, pady=10)
+        imu_frame.pack(fill=&#x27;both&#x27;, expand=True)
+        
+        # Create horizontal layout for IMU data and visualizer
+        imu_content = tk.Frame(imu_frame, bg=&#x27;#34495E&#x27;)
+        imu_content.pack(fill=&#x27;both&#x27;, expand=True)
+        
+        # Left side - Numerical data
+        data_frame = tk.Frame(imu_content, bg=&#x27;#34495E&#x27;)
+        data_frame.pack(side=&#x27;left&#x27;, fill=&#x27;both&#x27;, expand=True, padx=10)
+        
+        # Orientation (with Yaw)
+        orient_frame = tk.LabelFrame(data_frame, text=&quot;Orientation (Roll, Pitch, Yaw)&quot;, 
+                                     bg=&#x27;#2C3E50&#x27;, fg=&#x27;#F39C12&#x27;, 
+                                     font=(&#x27;Arial&#x27;, 10, &#x27;bold&#x27;))
+        orient_frame.pack(fill=&#x27;x&#x27;, pady=5)
+        
+        orient_values = tk.Frame(orient_frame, bg=&#x27;#2C3E50&#x27;)
+        orient_values.pack(pady=5)
+        
+        # Roll
+        tk.Label(orient_values, text=&quot;Roll:&quot;, bg=&#x27;#2C3E50&#x27;, fg=&#x27;white&#x27;, 
+                font=(&#x27;Arial&#x27;, 10)).grid(row=0, column=0, padx=10, pady=2, sticky=&#x27;w&#x27;)
+        tk.Label(orient_values, textvariable=self.roll, bg=&#x27;#1C2833&#x27;, fg=&#x27;#00FF00&#x27;, 
+                font=(&#x27;Courier&#x27;, 14, &#x27;bold&#x27;), width=8, relief=&#x27;sunken&#x27;).grid(row=0, column=1, padx=5, pady=2)
+        tk.Label(orient_values, text=&quot;°&quot;, bg=&#x27;#2C3E50&#x27;, fg=&#x27;white&#x27;, 
+                font=(&#x27;Arial&#x27;, 10)).grid(row=0, column=2, padx=5, pady=2)
+        
+        # Pitch
+        tk.Label(orient_values, text=&quot;Pitch:&quot;, bg=&#x27;#2C3E50&#x27;, fg=&#x27;white&#x27;, 
+                font=(&#x27;Arial&#x27;, 10)).grid(row=1, column=0, padx=10, pady=2, sticky=&#x27;w&#x27;)
+        tk.Label(orient_values, textvariable=self.pitch, bg=&#x27;#1C2833&#x27;, fg=&#x27;#00FF00&#x27;, 
+                font=(&#x27;Courier&#x27;, 14, &#x27;bold&#x27;), width=8, relief=&#x27;sunken&#x27;).grid(row=1, column=1, padx=5, pady=2)
+        tk.Label(orient_values, text=&quot;°&quot;, bg=&#x27;#2C3E50&#x27;, fg=&#x27;white&#x27;, 
+                font=(&#x27;Arial&#x27;, 10)).grid(row=1, column=2, padx=5, pady=2)
+        
+        # Yaw
+        tk.Label(orient_values, text=&quot;Yaw:&quot;, bg=&#x27;#2C3E50&#x27;, fg=&#x27;white&#x27;, 
+                font=(&#x27;Arial&#x27;, 10)).grid(row=2, column=0, padx=10, pady=2, sticky=&#x27;w&#x27;)
+        tk.Label(orient_values, textvariable=self.yaw, bg=&#x27;#1C2833&#x27;, fg=&#x27;#00FF00&#x27;, 
+                font=(&#x27;Courier&#x27;, 14, &#x27;bold&#x27;), width=8, relief=&#x27;sunken&#x27;).grid(row=2, column=1, padx=5, pady=2)
+        tk.Label(orient_values, text=&quot;°&quot;, bg=&#x27;#2C3E50&#x27;, fg=&#x27;white&#x27;, 
+                font=(&#x27;Arial&#x27;, 10)).grid(row=2, column=2, padx=5, pady=2)
+        
+        # Acceleration
+        accel_frame = tk.LabelFrame(data_frame, text=&quot;Acceleration (g)&quot;, 
+                                    bg=&#x27;#2C3E50&#x27;, fg=&#x27;#E67E22&#x27;, 
+                                    font=(&#x27;Arial&#x27;, 10, &#x27;bold&#x27;))
+        accel_frame.pack(fill=&#x27;x&#x27;, pady=5)
+        
+        accel_values = tk.Frame(accel_frame, bg=&#x27;#2C3E50&#x27;)
+        accel_values.pack(pady=5)
+        
+        for i, (label, var) in enumerate([(&quot;X:&quot;, self.ax), (&quot;Y:&quot;, self.ay), (&quot;Z:&quot;, self.az)]):
+            tk.Label(accel_values, text=label, bg=&#x27;#2C3E50&#x27;, fg=&#x27;white&#x27;).grid(row=i, column=0, padx=10, pady=2, sticky=&#x27;w&#x27;)
+            tk.Label(accel_values, textvariable=var, bg=&#x27;#1C2833&#x27;, fg=&#x27;#00FF00&#x27;, 
+                    font=(&#x27;Courier&#x27;, 10), width=8, relief=&#x27;sunken&#x27;).grid(row=i, column=1, padx=5, pady=2)
+        
+        # Gyroscope
+        gyro_frame = tk.LabelFrame(data_frame, text=&quot;Gyroscope (°/s)&quot;, 
+                                   bg=&#x27;#2C3E50&#x27;, fg=&#x27;#3498DB&#x27;, 
+                                   font=(&#x27;Arial&#x27;, 10, &#x27;bold&#x27;))
+        gyro_frame.pack(fill=&#x27;x&#x27;, pady=5)
+        
+        gyro_values = tk.Frame(gyro_frame, bg=&#x27;#2C3E50&#x27;)
+        gyro_values.pack(pady=5)
+        
+        for i, (label, var) in enumerate([(&quot;X:&quot;, self.gx), (&quot;Y:&quot;, self.gy), (&quot;Z:&quot;, self.gz)]):
+            tk.Label(gyro_values, text=label, bg=&#x27;#2C3E50&#x27;, fg=&#x27;white&#x27;).grid(row=i, column=0, padx=10, pady=2, sticky=&#x27;w&#x27;)
+            tk.Label(gyro_values, textvariable=var, bg=&#x27;#1C2833&#x27;, fg=&#x27;#00FF00&#x27;, 
+                    font=(&#x27;Courier&#x27;, 10), width=8, relief=&#x27;sunken&#x27;).grid(row=i, column=1, padx=5, pady=2)
+        
+        # Temperature
+        temp_frame = tk.Frame(data_frame, bg=&#x27;#34495E&#x27;)
+        temp_frame.pack(fill=&#x27;x&#x27;, pady=5)
+        tk.Label(temp_frame, text=&quot;Temperature:&quot;, bg=&#x27;#34495E&#x27;, fg=&#x27;white&#x27;, 
+                font=(&#x27;Arial&#x27;, 9)).pack(side=&#x27;left&#x27;, padx=5)
+        tk.Label(temp_frame, textvariable=self.temp, bg=&#x27;#1C2833&#x27;, fg=&#x27;#00FF00&#x27;, 
+                font=(&#x27;Courier&#x27;, 10), width=8, relief=&#x27;sunken&#x27;).pack(side=&#x27;left&#x27;, padx=5)
+        tk.Label(temp_frame, text=&quot;°C&quot;, bg=&#x27;#34495E&#x27;, fg=&#x27;white&#x27;).pack(side=&#x27;left&#x27;)
+        
+        # Right side - IMU Visualizer Circle (with Yaw indicator)
+        visualizer_frame = tk.Frame(imu_content, bg=&#x27;#34495E&#x27;)
+        visualizer_frame.pack(side=&#x27;right&#x27;, padx=20, pady=10)
+        
+        # Canvas for IMU visualization (circle with horizon line and yaw)
+        self.imu_canvas = tk.Canvas(visualizer_frame, width=200, height=200, 
+                                    bg=&#x27;#1C2833&#x27;, highlightthickness=2, 
+                                    highlightbackground=&#x27;#3498DB&#x27;)
+        self.imu_canvas.pack()
+        
+        tk.Label(visualizer_frame, text=&quot;IMU Balance Visualizer&quot;, bg=&#x27;#34495E&#x27;, fg=&#x27;#F39C12&#x27;, 
+                font=(&#x27;Arial&#x27;, 9, &#x27;bold&#x27;)).pack(pady=5)
+        
+        # Yaw indicator label
+        self.yaw_indicator = tk.Label(visualizer_frame, text=&quot;Yaw: ---°&quot;, 
+                                      bg=&#x27;#34495E&#x27;, fg=&#x27;#00FF00&#x27;, 
+                                      font=(&#x27;Courier&#x27;, 10, &#x27;bold&#x27;))
+        self.yaw_indicator.pack(pady=2)
+        
+        # Draw initial IMU circle
+        self.update_imu_visualization()
+        
+    def update_imu_visualization(self):
+        &quot;&quot;&quot;Draw the IMU visualization circle with horizon line and yaw indicator&quot;&quot;&quot;
+        if not hasattr(self, &#x27;imu_canvas&#x27;):
+            return
+            
+        self.imu_canvas.delete(&quot;all&quot;)
+        width = 200
+        height = 200
+        center_x = width // 2
+        center_y = height // 2
+        radius = 80
+        
+        # Draw outer circle
+        self.imu_canvas.create_oval(center_x - radius, center_y - radius, 
+                                    center_x + radius, center_y + radius,
+                                    outline=&#x27;#3498DB&#x27;, width=3)
+        
+        # Draw crosshair (center lines)
+        self.imu_canvas.create_line(center_x, center_y - radius + 10, 
+                                    center_x, center_y + radius - 10, 
+                                    fill=&#x27;#34495E&#x27;, width=1, dash=(2, 4))
+        self.imu_canvas.create_line(center_x - radius + 10, center_y, 
+                                    center_x + radius - 10, center_y, 
+                                    fill=&#x27;#34495E&#x27;, width=1, dash=(2, 4))
+        
+        # Draw center point
+        self.imu_canvas.create_oval(center_x - 4, center_y - 4, 
+                                    center_x + 4, center_y + 4,
+                                    fill=&#x27;red&#x27;, outline=&#x27;red&#x27;)
+        
+        # Draw horizon line based on roll angle
+        roll_rad = math.radians(self.current_roll)
+        line_length = 120
+        
+        # Calculate line endpoints
+        x1 = center_x - (line_length / 2) * math.cos(roll_rad)
+        y1 = center_y - (line_length / 2) * math.sin(roll_rad) + (self.current_pitch * 0.6)
+        x2 = center_x + (line_length / 2) * math.cos(roll_rad)
+        y2 = center_y + (line_length / 2) * math.sin(roll_rad) + (self.current_pitch * 0.6)
+        
+        self.imu_canvas.create_line(x1, y1, x2, y2, fill=&#x27;#00FF00&#x27;, width=3)
+        
+        # Draw pitch indicator (small circle)
+        pitch_y = center_y + (self.current_pitch * 1.2)
+        pitch_y = max(center_y - radius + 15, min(center_y + radius - 15, pitch_y))
+        self.imu_canvas.create_oval(center_x - 6, pitch_y - 6, 
+                                    center_x + 6, pitch_y + 6,
+                                    fill=&#x27;#F39C12&#x27;, outline=&#x27;#F39C12&#x27;)
+        
+        # Draw yaw indicator (small arrow around the circle)
+        yaw_rad = math.radians(self.current_yaw)
+        arrow_radius = radius - 10
+        arrow_x = center_x + arrow_radius * math.sin(yaw_rad)
+        arrow_y = center_y - arrow_radius * math.cos(yaw_rad)
+        self.imu_canvas.create_line(center_x, center_y, arrow_x, arrow_y, 
+                                    fill=&#x27;#E67E22&#x27;, width=2, arrow=&#x27;last&#x27;)
+        
+        # Add labels
+        self.imu_canvas.create_text(center_x, center_y - radius - 5, 
+                                   text=f&quot;Roll: {self.current_roll:.1f}°&quot;, 
+                                   fill=&#x27;#00FF00&#x27;, font=(&#x27;Arial&#x27;, 8))
+        self.imu_canvas.create_text(center_x, center_y + radius + 15, 
+                                   text=f&quot;Pitch: {self.current_pitch:.1f}°&quot;, 
+                                   fill=&#x27;#00FF00&#x27;, font=(&#x27;Arial&#x27;, 8))
+        
+        # Update yaw indicator label
+        self.yaw_indicator.config(text=f&quot;Yaw: {self.current_yaw:.1f}°&quot;)
+        
+        # Add level indicator text
+        if abs(self.current_roll) &lt; 5 and abs(self.current_pitch) &lt; 5:
+            self.imu_canvas.create_text(center_x, center_y, 
+                                       text=&quot;LEVEL&quot;, fill=&#x27;#00FF00&#x27;, 
+                                       font=(&#x27;Arial&#x27;, 10, &#x27;bold&#x27;))
+        
+    def create_log_section(self, parent):
+        log_frame = tk.LabelFrame(parent, text=&quot;Activity Log&quot;, 
+                                 bg=&#x27;#34495E&#x27;, fg=&#x27;white&#x27;, 
+                                 font=(&#x27;Arial&#x27;, 11, &#x27;bold&#x27;), 
+                                 padx=10, pady=5)
+        log_frame.pack(fill=&#x27;x&#x27;, pady=(10, 0))
+        
+        scrollbar = tk.Scrollbar(log_frame)
+        scrollbar.pack(side=&#x27;right&#x27;, fill=&#x27;y&#x27;)
+        
+        self.log_text = tk.Text(log_frame, height=5, 
+                               bg=&#x27;#1C2833&#x27;, fg=&#x27;#00FF00&#x27;, 
+                               font=(&#x27;Courier&#x27;, 8),
+                               yscrollcommand=scrollbar.set,
+                               state=&#x27;normal&#x27;)
+        self.log_text.pack(side=&#x27;left&#x27;, fill=&#x27;both&#x27;, expand=True)
+        scrollbar.config(command=self.log_text.yview)
+        
+    def update_motor_speed(self, motor_id, value, speed_var):
+        &quot;&quot;&quot;Update individual motor speed&quot;&quot;&quot;
+        speed = int(float(value))
+        self.motor_speeds[motor_id] = speed
+        speed_var.set(str(speed))
+        
+        # Send command
+        self.send_motor_command(motor_id, speed)
+        
+    def send_motor_command(self, motor_id, speed):
+        &quot;&quot;&quot;Send motor command to Pico&quot;&quot;&quot;
+        if self.serial_port and self.serial_port.is_open and not self.test_mode.get():
+            command = f&quot;M:{motor_id}:{speed}\n&quot;
+            self.serial_port.write(command.encode())
+        
+        if self.test_mode.get():
+            self.add_log(f&quot;Motor {motor_id}: {speed}%&quot;)
+        
+    def all_forward(self):
+        &quot;&quot;&quot;Set all motors forward&quot;&quot;&quot;
+        master = self.master_speed.get()
+        for motor_id in self.motor_speeds:
+            self.motor_speeds[motor_id] = master
+            self.motor_sliders[motor_id].set(master)
+            self.motor_speed_vars[motor_id].set(str(master))
+            self.send_motor_command(motor_id, master)
+        self.add_log(f&quot;All motors forward at {master}%&quot;)
+        
+    def all_backward(self):
+        &quot;&quot;&quot;Set all motors backward&quot;&quot;&quot;
+        master = self.master_speed.get()
+        for motor_id in self.motor_speeds:
+            self.motor_speeds[motor_id] = -master
+            self.motor_sliders[motor_id].set(-master)
+            self.motor_speed_vars[motor_id].set(str(-master))
+            self.send_motor_command(motor_id, -master)
+        self.add_log(f&quot;All motors backward at {master}%&quot;)
+        
+    def all_stop(self):
+        &quot;&quot;&quot;Stop all motors&quot;&quot;&quot;
+        for motor_id in self.motor_speeds:
+            self.motor_speeds[motor_id] = 0
+            self.motor_sliders[motor_id].set(0)
+            self.motor_speed_vars[motor_id].set(&quot;0&quot;)
+            self.send_motor_command(motor_id, 0)
+        self.add_log(&quot;All motors stopped&quot;)
+        
+    def reset_all_motors(self):
+        &quot;&quot;&quot;Reset all motor speeds to zero&quot;&quot;&quot;
+        self.all_stop()
+        self.master_speed.set(50)
+        self.master_speed_label.config(text=&quot;50%&quot;)
+        
+    def update_master_speed(self, value):
+        &quot;&quot;&quot;Update master speed label&quot;&quot;&quot;
+        self.master_speed_label.config(text=f&quot;{int(float(value))}%&quot;)
+        
+    def setup_keyboard_controls(self):
+        &quot;&quot;&quot;Setup keyboard shortcuts&quot;&quot;&quot;
+        self.root.bind(&#x27;&lt;KeyPress-w&gt;&#x27;, lambda e: self.all_forward())
+        self.root.bind(&#x27;&lt;KeyPress-s&gt;&#x27;, lambda e: self.all_backward())
+        self.root.bind(&#x27;&lt;KeyPress-space&gt;&#x27;, lambda e: self.all_stop())
+        self.root.bind(&#x27;&lt;KeyPress-r&gt;&#x27;, lambda e: self.reset_all_motors())
+        
+    def refresh_ports(self):
+        ports = [port.device for port in serial.tools.list_ports.comports()]
+        self.port_combo[&#x27;values&#x27;] = ports
+        if ports:
+            self.port_combo.current(0)
+            self.add_log(f&quot;Found {len(ports)} port(s)&quot;)
+            
+    def toggle_test_mode(self):
+        if self.test_mode.get():
+            self.add_log(&quot;⚠ Test mode enabled - Using simulated data&quot;)
+        else:
+            self.add_log(&quot;Test mode disabled - Ready for hardware connection&quot;)
+            
+    def toggle_connection(self):
+        if self.serial_port is None or not self.serial_port.is_open:
+            self.connect()
+        else:
+            self.disconnect()
+            
+    def connect(self):
+        try:
+            port = self.port_combo.get()
+            if not port and not self.test_mode.get():
+                messagebox.showerror(&quot;Error&quot;, &quot;Please select a serial port&quot;)
+                return
+            
+            if not self.test_mode.get():
+                self.serial_port = serial.Serial(port, 115200, timeout=0.1)
+                time.sleep(2)
+                self.add_log(f&quot;✓ Connected to {port}&quot;)
+            else:
+                self.add_log(&quot;✓ Test mode connection established&quot;)
+            
+            self.running = True
+            self.read_thread = threading.Thread(target=self.read_serial, daemon=True)
+            self.read_thread.start()
+            
+            self.update_connection_status(True)
+            
+        except Exception as e:
+            messagebox.showerror(&quot;Connection Error&quot;, f&quot;Failed to connect:\n{str(e)}&quot;)
+            self.add_log(f&quot;✗ Connection failed: {str(e)}&quot;)
+            
+    def disconnect(self):
+        self.running = False
+        self.all_stop()
+        time.sleep(0.1)
+        
+        if self.serial_port and self.serial_port.is_open:
+            self.serial_port.close()
+            self.add_log(&quot;✓ Disconnected from serial port&quot;)
+        else:
+            self.add_log(&quot;✓ Test mode disconnected&quot;)
+        
+        self.update_connection_status(False)
+        
+    def update_connection_status(self, connected):
+        if connected:
+            self.connection_status.set(&quot;Connected&quot;)
+            self.status_label.config(fg=&#x27;#27AE60&#x27;)
+            self.status_canvas.itemconfig(self.status_indicator, fill=&#x27;#27AE60&#x27;)
+            self.connect_btn.config(text=&quot;Disconnect&quot;, bg=&#x27;#E74C3C&#x27;)
+        else:
+            self.connection_status.set(&quot;Disconnected&quot;)
+            self.status_label.config(fg=&#x27;#E74C3C&#x27;)
+            self.status_canvas.itemconfig(self.status_indicator, fill=&#x27;#E74C3C&#x27;)
+            self.connect_btn.config(text=&quot;Connect&quot;, bg=&#x27;#27AE60&#x27;)
+            
+    def read_serial(self):
+        while self.running:
+            try:
+                if self.test_mode.get():
+                    time.sleep(0.1)
+                    continue
+                    
+                if self.serial_port and self.serial_port.in_waiting:
+                    line = self.serial_port.readline().decode(&#x27;utf-8&#x27;).strip()
+                    if line:
+                        self.parse_data(line)
+            except Exception as e:
+                self.add_log(f&quot;✗ Read error: {str(e)}&quot;)
+            time.sleep(0.05)
+            
+    def parse_data(self, line):
+        try:
+            parts = line.split(&#x27;,&#x27;)
+            for part in parts:
+                if &#x27;:&#x27; in part:
+                    key, value = part.split(&#x27;:&#x27;)
+                    if key == &#x27;DIST1&#x27;:
+                        self.distance1.set(value)
+                    elif key == &#x27;DIST2&#x27;:
+                        self.distance2.set(value)
+                    elif key == &#x27;ROLL&#x27;:
+                        self.roll.set(f&quot;{float(value):.1f}&quot;)
+                        self.current_roll = float(value)
+                        self.update_imu_visualization()
+                    elif key == &#x27;PITCH&#x27;:
+                        self.pitch.set(f&quot;{float(value):.1f}&quot;)
+                        self.current_pitch = float(value)
+                        self.update_imu_visualization()
+                    elif key == &#x27;YAW&#x27;:
+                        self.yaw.set(f&quot;{float(value):.1f}&quot;)
+                        self.current_yaw = float(value)
+                        self.update_imu_visualization()
+                    elif key == &#x27;AX&#x27;:
+                        self.ax.set(value)
+                    elif key == &#x27;AY&#x27;:
+                        self.ay.set(value)
+                    elif key == &#x27;AZ&#x27;:
+                        self.az.set(value)
+                    elif key == &#x27;GX&#x27;:
+                        self.gx.set(value)
+                    elif key == &#x27;GY&#x27;:
+                        self.gy.set(value)
+                    elif key == &#x27;GZ&#x27;:
+                        self.gz.set(value)
+                    elif key == &#x27;TEMP&#x27;:
+                        self.temp.set(value)
+        except Exception as e:
+            self.add_log(f&quot;✗ Parse error: {str(e)}&quot;)
+            
+    def start_test_mode_updater(self):
+        def update():
+            if self.test_mode.get() and self.running:
+                # Simulate distance
+                self.distance1.set(str(random.randint(50, 2000)))
+                self.distance2.set(str(random.randint(50, 2000)))
+                
+                # Simulate IMU with smooth movement
+                self.current_roll += random.uniform(-3, 3)
+                self.current_pitch += random.uniform(-3, 3)
+                self.current_yaw += random.uniform(-2, 2)
+                self.current_roll = max(-45, min(45, self.current_roll))
+                self.current_pitch = max(-45, min(45, self.current_pitch))
+                if self.current_yaw &gt;= 360:
+                    self.current_yaw -= 360
+                elif self.current_yaw &lt; 0:
+                    self.current_yaw += 360
+                    
+                self.roll.set(f&quot;{self.current_roll:.1f}&quot;)
+                self.pitch.set(f&quot;{self.current_pitch:.1f}&quot;)
+                self.yaw.set(f&quot;{self.current_yaw:.1f}&quot;)
+                
+                # Update IMU visualizer
+                self.update_imu_visualization()
+                
+                # Simulate accelerometer
+                self.ax.set(f&quot;{int(self.current_roll * 20)}&quot;)
+                self.ay.set(f&quot;{int(self.current_pitch * 20)}&quot;)
+                self.az.set(f&quot;{900 + random.randint(-50, 50)}&quot;)
+                
+                # Simulate gyroscope
+                self.gx.set(f&quot;{int(random.uniform(-50, 50))}&quot;)
+                self.gy.set(f&quot;{int(random.uniform(-50, 50))}&quot;)
+                self.gz.set(f&quot;{int(random.uniform(-50, 50))}&quot;)
+                
+                # Simulate temperature
+                self.temp.set(f&quot;{25 + random.uniform(-2, 3):.1f}&quot;)
+            
+            self.root.after(200, update)
+        
+        update()
+        
+    def add_log(self, message):
+        if not hasattr(self, &#x27;log_text&#x27;):
+            return
+            
+        timestamp = time.strftime(&quot;%H:%M:%S&quot;)
+        log_entry = f&quot;[{timestamp}] {message}\n&quot;
+        
+        self.log_text.config(state=&#x27;normal&#x27;)
+        self.log_text.insert(&#x27;end&#x27;, log_entry)
+        self.log_text.see(&#x27;end&#x27;)
+        self.log_text.config(state=&#x27;disabled&#x27;)
+        
+        lines = int(self.log_text.index(&#x27;end-1c&#x27;).split(&#x27;.&#x27;)[0])
+        if lines &gt; 100:
+            self.log_text.config(state=&#x27;normal&#x27;)
+            self.log_text.delete(&#x27;1.0&#x27;, &#x27;2.0&#x27;)
+            self.log_text.config(state=&#x27;disabled&#x27;)
+            
+    def on_closing(self):
+        if messagebox.askokcancel(&quot;Quit&quot;, &quot;Close Rover Control Panel?&quot;):
+            self.disconnect()
+            self.root.destroy()
+
+# Initialize motor control dictionaries
+RoverGUI.motor_sliders = {}
+RoverGUI.motor_speed_vars = {}
+
+if __name__ == &quot;__main__&quot;:
+    root = tk.Tk()
+    app = RoverGUI(root)
+    root.protocol(&quot;WM_DELETE_WINDOW&quot;, app.on_closing)
+    root.mainloop()
+</code></pre></details></div></section></main><footer class="wrap"><span class="label">© 2026 AMINATA GAYE</span><a class="btn btn-ghost" href="../index.html#rover-project">← Back to projects</a></footer></body></html>

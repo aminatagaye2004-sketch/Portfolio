@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Sudoku Lab — Aminata Gaye</title><link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #10151c;
+    --bg-alt: #141b24;
+    --surface: #1b2531;
+    --surface-2: #212c3a;
+    --line: #2c3846;
+    --line-soft: #212a35;
+    --text: #e9e6dd;
+    --text-dim: #98a2b0;
+    --text-faint: #5f6b79;
+    --copper: #c97c4c;
+    --copper-soft: rgba(201,124,76,0.14);
+    --blue: #6fa8c0;
+    --blue-soft: rgba(111,168,192,0.14);
+    --amber: #d9a441;
+    --radius: 2px;
+    --maxw: 1120px;
+  }
+
+  *{ box-sizing: border-box; }
+  html{ scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce){
+    html{ scroll-behavior: auto; }
+    *{ animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+  }
+
+  body{
+    margin:0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    background-image:
+      linear-gradient(var(--line-soft) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
+    background-size: 48px 48px;
+    background-position: -1px -1px;
+  }
+
+  a{ color: inherit; }
+  h1,h2,h3{ font-family: 'Space Grotesk', sans-serif; margin: 0; letter-spacing: -0.01em; }
+
+  .label{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+
+  .wrap{ max-width: var(--maxw); margin: 0 auto; padding: 0 28px; }
+
+  /* ---------- NAV ---------- */
+  nav{
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(16,21,28,0.88);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+  }
+  nav .wrap{ display:flex; align-items:center; justify-content:space-between; height:64px; }
+  .nav-mark{ display:flex; align-items:center; gap:10px; font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--text-dim); }
+  .nav-mark .dot{ width:8px; height:8px; border:1.5px solid var(--copper); border-radius:50%; position:relative; }
+  .nav-mark .dot::after{ content:""; position:absolute; inset:2px; background:var(--copper); border-radius:50%; }
+  .nav-links{ display:flex; gap: 28px; list-style:none; margin:0; padding:0; }
+  .nav-links a{
+    text-decoration:none; font-family:'IBM Plex Mono', monospace; font-size:12.5px;
+    letter-spacing:0.08em; text-transform:uppercase; color: var(--text-dim);
+    padding: 4px 2px; border-bottom: 1px solid transparent;
+    transition: color .15s ease, border-color .15s ease;
+  }
+  .nav-links a:hover, .nav-links a:focus-visible{ color: var(--copper); border-color: var(--copper); }
+  .nav-cta{
+    font-family:'IBM Plex Mono', monospace; font-size:12px; text-transform:uppercase; letter-spacing:.08em;
+    color: var(--bg); background: var(--copper); padding: 8px 14px; text-decoration:none;
+    border-radius: var(--radius);
+  }
+  .nav-toggle{ display:none; }
+
+  a:focus-visible, button:focus-visible{ outline: 2px solid var(--blue); outline-offset: 3px; }
+
+  /* ---------- HERO / TITLE BLOCK ---------- */
+  .hero{
+    position: relative;
+    border-bottom: 1px solid var(--line);
+    padding: 64px 0 0 0;
+  }
+  .crop{
+    position:absolute; width:18px; height:18px; opacity:0.55;
+  }
+  .crop::before, .crop::after{ content:""; position:absolute; background: var(--text-faint); }
+  .crop::before{ width:100%; height:1px; top:50%; }
+  .crop::after{ width:1px; height:100%; left:50%; }
+  .crop.tl{ top:14px; left:14px; }
+  .crop.tr{ top:14px; right:14px; }
+
+  .hero-inner{ padding: 40px 0 56px; position:relative; }
+  .hero-eyebrow{
+    display:flex; align-items:center; gap:10px; margin-bottom:22px;
+  }
+  .hero-eyebrow .rule{ flex:1; height:1px; background: var(--line); }
+
+  .hero h1{
+    font-size: clamp(44px, 8vw, 84px);
+    font-weight: 700;
+    line-height: 0.98;
+    color: var(--text);
+  }
+  .hero h1 span{ color: var(--copper); }
+
+  .hero-sub{
+    margin-top: 18px;
+    max-width: 560px;
+    font-size: 17px;
+    color: var(--text-dim);
+  }
+
+  .hero-actions{ display:flex; gap:14px; margin-top: 34px; flex-wrap: wrap; }
+  .btn{
+    font-family:'IBM Plex Mono', monospace; font-size:12.5px; text-transform:uppercase; letter-spacing:.08em;
+    padding: 13px 22px; text-decoration:none; border-radius: var(--radius);
+    display:inline-flex; align-items:center; gap:8px;
+    transition: transform .15s ease, border-color .15s ease, background .15s ease;
+  }
+  .btn-primary{ background: var(--copper); color: var(--bg); }
+  .btn-primary:hover{ transform: translateY(-1px); }
+  .btn-ghost{ border: 1px solid var(--line); color: var(--text); }
+  .btn-ghost:hover{ border-color: var(--blue); color: var(--blue); }
+
+  /* title block strip */
+  .titleblock{
+    border-top: 1px solid var(--line);
+    display:grid;
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .tb-cell{
+    padding: 16px 20px;
+    border-right: 1px solid var(--line);
+  }
+  .tb-cell:last-child{ border-right:none; }
+  .tb-cell .label{ margin-bottom:6px; }
+  .tb-cell .val{ font-family:'IBM Plex Mono', monospace; font-size:13.5px; color: var(--text); }
+  .tb-cell .val.copper{ color: var(--copper); }
+
+  /* ---------- SECTION SHELL ---------- */
+  section{ padding: 84px 0; border-bottom: 1px solid var(--line); position:relative; }
+  section:last-of-type{ border-bottom:none; }
+  .sec-head{ display:flex; align-items:baseline; gap:16px; margin-bottom: 44px; }
+  .sec-num{ font-family:'IBM Plex Mono', monospace; color: var(--copper); font-size: 13px; }
+  .sec-head h2{ font-size: clamp(26px, 4vw, 36px); }
+  .sec-head .rule{ flex:1; height:1px; background: var(--line); }
+
+  /* ---------- ABOUT ---------- */
+  .about-grid{ display:grid; grid-template-columns: 1.3fr 1fr; gap: 56px; }
+  .about-text p{ color: var(--text-dim); font-size: 16px; margin: 0 0 16px; max-width: 560px; }
+  .about-text strong{ color: var(--text); font-weight: 600; }
+
+  .spec-sheet{ border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+  .spec-sheet .sh{
+    padding: 14px 18px; border-bottom: 1px solid var(--line);
+    font-family:'IBM Plex Mono', monospace; font-size:12px; letter-spacing:.1em; text-transform:uppercase; color: var(--text-faint);
+  }
+  .spec-row{
+    display:flex; justify-content:space-between; gap: 12px;
+    padding: 13px 18px; border-bottom: 1px solid var(--line-soft);
+    font-size: 14px;
+  }
+  .spec-row:last-child{ border-bottom:none; }
+  .spec-row .k{ color: var(--text-faint); font-family:'IBM Plex Mono', monospace; font-size:12.5px; }
+  .spec-row .v{ color: var(--text); text-align:right; }
+
+  /* ---------- SKILLS ---------- */
+  .skills-grid{ display:grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+  .skill-col{ background: var(--bg); padding: 28px 26px; }
+  .skill-col .tag{
+    display:inline-block; font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:.1em;
+    text-transform:uppercase; color: var(--bg); background: var(--blue); padding: 3px 8px; border-radius: var(--radius); margin-bottom: 16px;
+  }
+  .skill-col:nth-child(1) .tag{ background: var(--copper); }
+  .skill-col:nth-child(3) .tag{ background: var(--amber); }
+  .skill-col h3{ font-size: 19px; margin-bottom: 14px; }
+  .skill-col ul{ list-style:none; margin:0; padding:0; }
+  .skill-col li{
+    font-size: 14.5px; color: var(--text-dim); padding: 8px 0; border-top: 1px solid var(--line-soft);
+    display:flex; align-items:center; gap:10px;
+  }
+  .skill-col li:first-of-type{ border-top:none; }
+  .skill-col li::before{ content:""; width:5px; height:5px; background: var(--text-faint); flex-shrink:0; }
+
+  /* ---------- PROJECTS ---------- */
+  .projects{ display:flex; flex-direction:column; gap: 22px; }
+  .project-card{
+    border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface);
+    display:grid; grid-template-columns: 220px 1fr; position:relative; overflow:hidden;
+  }
+  .project-card.featured{ border-color: var(--copper); }
+  .pc-side{
+    background: var(--surface-2); border-right: 1px solid var(--line);
+    padding: 24px 20px; display:flex; flex-direction:column; justify-content:space-between;
+  }
+  .pc-index{ font-family:'IBM Plex Mono', monospace; font-size: 34px; color: var(--line); font-weight:600; }
+  .status{
+    font-family:'IBM Plex Mono', monospace; font-size: 11px; text-transform:uppercase; letter-spacing:.08em;
+    padding: 5px 9px; border-radius: var(--radius); width: fit-content;
+  }
+  .status.progress{ background: var(--copper-soft); color: var(--copper); border:1px solid rgba(201,124,76,0.4); }
+  .status.done{ background: var(--blue-soft); color: var(--blue); border:1px solid rgba(111,168,192,0.4); }
+  .status.planned{ background: rgba(152,162,176,0.1); color: var(--text-faint); border:1px solid var(--line); }
+
+  .pc-main{ padding: 26px 28px; }
+  .pc-top{ display:flex; align-items:flex-start; justify-content:space-between; gap: 16px; margin-bottom: 10px; }
+  .pc-main h3{ font-size: 22px; }
+  .featured-flag{
+    font-family:'IBM Plex Mono', monospace; font-size: 10.5px; text-transform:uppercase; letter-spacing:.1em;
+    color: var(--copper); border: 1px solid var(--copper); padding: 3px 8px; border-radius: var(--radius); white-space:nowrap;
+  }
+  .pc-main p{ color: var(--text-dim); font-size: 14.5px; margin: 0 0 16px; max-width: 620px; }
+  .pc-tags{ display:flex; flex-wrap:wrap; gap: 8px; }
+  .pc-tags span{
+    font-family:'IBM Plex Mono', monospace; font-size: 11.5px; color: var(--text-faint);
+    border: 1px solid var(--line); padding: 4px 9px; border-radius: var(--radius);
+  }
+
+  @media (max-width: 720px){
+    .project-card{ grid-template-columns: 1fr; }
+    .pc-side{ flex-direction:row; border-right:none; border-bottom:1px solid var(--line); align-items:center; }
+  }
+
+  /* ---------- CONTACT ---------- */
+  .contact-block{
+    display:grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items:end;
+  }
+  .contact-block h2{ font-size: clamp(28px,5vw,44px); max-width: 480px; }
+  .contact-sub{ margin-top: 14px; max-width: 420px; color: var(--text-dim); font-size: 15px; }
+  .contact-links{ display:flex; flex-direction:column; gap: 0; }
+  .contact-links a{
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 16px 0; border-top: 1px solid var(--line);
+    text-decoration:none; font-family:'IBM Plex Mono', monospace; font-size: 14px; color: var(--text);
+    transition: color .15s ease, padding-left .15s ease;
+  }
+  .contact-links a:last-child{ border-bottom: 1px solid var(--line); }
+  .contact-links a .arrow{ color: var(--text-faint); transition: transform .15s ease; }
+  .contact-links a:hover{ color: var(--copper); padding-left: 6px; }
+  .contact-links a:hover .arrow{ transform: translateX(3px); color: var(--copper); }
+
+  footer{
+    padding: 28px 0; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap: 10px;
+  }
+  footer .label{ color: var(--text-faint); }
+
+  @media (max-width: 860px){
+    .titleblock{ grid-template-columns: repeat(2, 1fr); }
+    .tb-cell:nth-child(2){ border-right:none; }
+    .about-grid{ grid-template-columns: 1fr; }
+    .skills-grid{ grid-template-columns: 1fr; }
+    .contact-block{ grid-template-columns: 1fr; }
+    .nav-links{ display:none; }
+  }
+
+.detail-hero{padding:56px 28px 36px}.detail-hero h1{font-size:clamp(36px,7vw,66px);margin:18px 0}.intro{max-width:700px;color:var(--text-dim);font-size:18px}.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}.panel{padding:28px;background:var(--surface);border:1px solid var(--line);min-width:0}.panel h3{margin-bottom:14px}.panel p,.panel li{color:var(--text-dim)}.panel ol{padding-left:22px}.panel li{margin:12px 0}.detail-section{padding:42px 0}.detail-section .sec-head{margin-bottom:24px}.terminal{background:var(--bg);padding:20px;border:1px solid var(--line);overflow:auto;font:13px/1.65 'IBM Plex Mono',monospace;color:var(--blue)}.caption{font-size:13px;color:var(--text-dim)}.detail-nav{display:flex;gap:16px;align-items:center;flex-wrap:wrap}.detail-nav a{font:12px 'IBM Plex Mono',monospace;text-decoration:none;color:var(--blue)}details summary{cursor:pointer;color:var(--blue);padding:14px 0}section{scroll-margin-top:85px}@media(max-width:720px){.detail-grid{grid-template-columns:1fr}.panel{padding:20px}.detail-nav .nav-mark{display:none}.terminal{font-size:11px;padding:12px}}
+
+.chart { margin: 20px 0 0; }
+.chart img { display: block; width: 100%; height: auto; border: 1px solid var(--line); }
+.chart figcaption { margin-top: 10px; color: var(--text-dim); font-size: 14px; }
+.data-table { width: 100%; border-collapse: collapse; font: 13px/1.5 'IBM Plex Mono', monospace; }
+.data-table td, .data-table th { border-bottom: 1px solid var(--line); padding: 8px; text-align: right; }
+.data-table td:first-child, .data-table th:first-child { text-align: left; }
+.table-wrap { overflow-x: auto; }
+.detail-grid > * { min-width: 0; }
+.source-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+.source-links a { overflow-wrap: anywhere; }
+.cad-views details { margin-top: 12px; border-top: 1px solid var(--line); }
+.cad-views summary:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
+
+.detail-hero h1 { line-height: 1.12; }
+.cad-views .chart img { max-height: 560px; object-fit: contain; background: var(--bg); }
+</style></head><body>
+<nav><div class="wrap detail-nav"><a href="../index.html#sudoku-project">← All projects</a><span class="nav-mark">AMINATA GAYE / PROJECT 07</span><a href="#implementation">Implementation ↓</a></div></nav>
+<header class="detail-hero wrap"><div class="label">Software / C++ programming lab</div><h1>Sudoku Lab</h1><span class="status done">Completed</span><p class="intro">From a text file to a structured Sudoku board: a C++ exercise in file handling, two-dimensional arrays and readable console output.</p><div class="pc-tags"><span>C++</span><span>File I/O</span><span>2D Arrays</span><span>Character Parsing</span></div><div class="hero-actions"><a class="btn btn-primary" href="#output">See the output ↓</a><a class="btn btn-ghost" href="main.cpp" download>Download C++ source ↓</a></div></header>
+<main class="wrap">
+<section class="detail-section" id="implementation"><div class="sec-head"><span class="sec-num">01</span><h2>How it works</h2><span class="rule"></span></div><div class="detail-grid"><article class="panel"><h3>Read. Store. Display.</h3><ol><li><strong>LoadBoard</strong> reads nine lines from a puzzle file, checking nine character positions in each line.</li><li>Digits 1–9 become integer values in a 9×9 array. Zeros, dots, commas and other characters become blank cells; short rows are padded with blanks.</li><li><strong>DisplayBoard</strong> prints row and column indices, dots for blank cells, and separators between the 3×3 boxes.</li></ol></article><article class="panel"><h3>Programming focus</h3><p>The implementation separates file loading from display logic. Nested loops map each character position to a row and column, while character comparisons distinguish digits from blanks.</p><p>The result is a console board viewer. This version does not solve puzzles or check Sudoku constraints, and it does not report missing input files.</p><p class="caption">Based on the local lab source saved as main.cpp.rtf, converted to a plain C++ file for viewing and download.</p></article></div></section>
+<section class="detail-section" id="output"><div class="sec-head"><span class="sec-num">02</span><h2>Console output</h2><span class="rule"></span></div><div class="detail-grid"><article class="panel"><h3>Example run</h3><p>The original program was compiled and run with the sample puzzle below. This is its captured output.</p><pre class="terminal" aria-label="Sudoku board console output">    0 1 2    3 4 5    6 7 8
+  +-------+-------+-------+
+0 | 5 3 . | . 7 . | . . . |
+1 | 6 . . | 1 9 5 | . . . |
+2 | . 9 8 | . . . | . 6 . |
+  +-------+-------+-------+
+3 | 8 . . | . 6 . | . . 3 |
+4 | 4 . . | 8 . 3 | . . 1 |
+5 | 7 . . | . 2 . | . . 6 |
+  +-------+-------+-------+
+6 | . 6 . | . . . | 2 8 . |
+7 | . . . | 4 1 9 | . . 5 |
+8 | . . . | . 8 . | . 7 9 |
+  +-------+-------+-------+
+</pre><p class="caption">Sample puzzle added for this portfolio demonstration.</p></article><article class="panel"><h3>Input file</h3><p>Use nine rows of nine characters. Each character represents one cell; 0 marks an empty cell in this example.</p><pre class="terminal">530070000
+600195000
+098000060
+800060003
+400803001
+700020006
+060000280
+000419005
+000080079
+</pre><a class="btn btn-ghost" href="example.txt" download>Download example puzzle ↓</a></article></div></section>
+<section class="detail-section"><div class="sec-head"><span class="sec-num">03</span><h2>The input as a Sudoku grid</h2><span class="rule"></span></div>
+<article class="panel"><figure class="chart"><img src="sample-grid.png" alt="Nine-by-nine grid showing the givens from the downloadable example puzzle."><figcaption>This board is drawn from the example input. A zero in the file becomes an empty cell, displayed as a dot in the console output.</figcaption></figure></article></section>
+<section class="detail-section" id="source"><div class="sec-head"><span class="sec-num">04</span><h2>Explore the code</h2><span class="rule"></span></div><div class="panel"><p>Save the source and example puzzle in the same folder. With a C++ compiler installed, compile and run the program, then enter <code>example.txt</code> when prompted.</p><pre class="terminal">c++ main.cpp -o sudoku
+./sudoku</pre><details><summary>View C++ source</summary><pre class="terminal"><code>#include &lt;iostream&gt;
+#include &lt;fstream&gt;
+#include &lt;string&gt;
+using namespace std;
+
+int board[9][9] = {0};
+
+void LoadBoard(string filename, int board[9][9]) {
+    ifstream File(filename);
+    string line;
+    for (int i = 0; i &lt; 9; i++) {
+        getline(File, line);
+        for (int j = 0; j &lt; 9; j++) {
+            if (j &lt; line.length()) {
+                char c = line[j];
+                if (c == &#x27;,&#x27; || c == &#x27;0&#x27; || c == &#x27;.&#x27;) {
+                    board[i][j] = 0;
+                } else if (c &gt;= &#x27;1&#x27; &amp;&amp; c &lt;= &#x27;9&#x27;) {
+                    board[i][j] = c - &#x27;0&#x27;;
+                } else {
+                    board[i][j] = 0;
+                }
+            } else {
+                board[i][j] = 0;
+            }
+        }
+    }
+    File.close();
+}
+
+void DisplayBoard(int board[9][9]) {
+    cout &lt;&lt; &quot;\n    0 1 2    3 4 5    6 7 8\n&quot;;
+    cout &lt;&lt; &quot;  +-------+-------+-------+\n&quot;;
+    for (int i = 0; i &lt; 9; i++) {
+        cout &lt;&lt; i &lt;&lt; &quot; | &quot;;
+        for (int j = 0; j &lt; 9; j++) {
+            if (board[i][j] == 0)
+                cout &lt;&lt; &quot;. &quot;;
+            else
+                cout &lt;&lt; board[i][j] &lt;&lt; &quot; &quot;;
+            
+            if ((j + 1) % 3 == 0 &amp;&amp; j != 8)
+                cout &lt;&lt; &quot;| &quot;;
+        }
+        cout &lt;&lt; &quot;|\n&quot;;
+        if ((i + 1) % 3 == 0 &amp;&amp; i != 8)
+            cout &lt;&lt; &quot;  +-------+-------+-------+\n&quot;;
+    }
+    cout &lt;&lt; &quot;  +-------+-------+-------+\n&quot;;
+}
+
+int main() {
+    string filename;
+    cout &lt;&lt; &quot;Enter Sudoku file name: &quot;;
+    cin &gt;&gt; filename;
+    
+    LoadBoard(filename, board);
+    DisplayBoard(board);
+    
+    return 0;
+}</code></pre></details></div></section>
+</main><footer class="wrap"><span class="label">© 2026 AMINATA GAYE</span><a class="btn btn-ghost" href="../index.html#sudoku-project">← Back to projects</a></footer></body></html>

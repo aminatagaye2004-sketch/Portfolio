@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Neural Network Lab — Aminata Gaye</title><link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #10151c;
+    --bg-alt: #141b24;
+    --surface: #1b2531;
+    --surface-2: #212c3a;
+    --line: #2c3846;
+    --line-soft: #212a35;
+    --text: #e9e6dd;
+    --text-dim: #98a2b0;
+    --text-faint: #5f6b79;
+    --copper: #c97c4c;
+    --copper-soft: rgba(201,124,76,0.14);
+    --blue: #6fa8c0;
+    --blue-soft: rgba(111,168,192,0.14);
+    --amber: #d9a441;
+    --radius: 2px;
+    --maxw: 1120px;
+  }
+
+  *{ box-sizing: border-box; }
+  html{ scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce){
+    html{ scroll-behavior: auto; }
+    *{ animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+  }
+
+  body{
+    margin:0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    background-image:
+      linear-gradient(var(--line-soft) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
+    background-size: 48px 48px;
+    background-position: -1px -1px;
+  }
+
+  a{ color: inherit; }
+  h1,h2,h3{ font-family: 'Space Grotesk', sans-serif; margin: 0; letter-spacing: -0.01em; }
+
+  .label{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+
+  .wrap{ max-width: var(--maxw); margin: 0 auto; padding: 0 28px; }
+
+  /* ---------- NAV ---------- */
+  nav{
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(16,21,28,0.88);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+  }
+  nav .wrap{ display:flex; align-items:center; justify-content:space-between; height:64px; }
+  .nav-mark{ display:flex; align-items:center; gap:10px; font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--text-dim); }
+  .nav-mark .dot{ width:8px; height:8px; border:1.5px solid var(--copper); border-radius:50%; position:relative; }
+  .nav-mark .dot::after{ content:""; position:absolute; inset:2px; background:var(--copper); border-radius:50%; }
+  .nav-links{ display:flex; gap: 28px; list-style:none; margin:0; padding:0; }
+  .nav-links a{
+    text-decoration:none; font-family:'IBM Plex Mono', monospace; font-size:12.5px;
+    letter-spacing:0.08em; text-transform:uppercase; color: var(--text-dim);
+    padding: 4px 2px; border-bottom: 1px solid transparent;
+    transition: color .15s ease, border-color .15s ease;
+  }
+  .nav-links a:hover, .nav-links a:focus-visible{ color: var(--copper); border-color: var(--copper); }
+  .nav-cta{
+    font-family:'IBM Plex Mono', monospace; font-size:12px; text-transform:uppercase; letter-spacing:.08em;
+    color: var(--bg); background: var(--copper); padding: 8px 14px; text-decoration:none;
+    border-radius: var(--radius);
+  }
+  .nav-toggle{ display:none; }
+
+  a:focus-visible, button:focus-visible{ outline: 2px solid var(--blue); outline-offset: 3px; }
+
+  /* ---------- HERO / TITLE BLOCK ---------- */
+  .hero{
+    position: relative;
+    border-bottom: 1px solid var(--line);
+    padding: 64px 0 0 0;
+  }
+  .crop{
+    position:absolute; width:18px; height:18px; opacity:0.55;
+  }
+  .crop::before, .crop::after{ content:""; position:absolute; background: var(--text-faint); }
+  .crop::before{ width:100%; height:1px; top:50%; }
+  .crop::after{ width:1px; height:100%; left:50%; }
+  .crop.tl{ top:14px; left:14px; }
+  .crop.tr{ top:14px; right:14px; }
+
+  .hero-inner{ padding: 40px 0 56px; position:relative; }
+  .hero-eyebrow{
+    display:flex; align-items:center; gap:10px; margin-bottom:22px;
+  }
+  .hero-eyebrow .rule{ flex:1; height:1px; background: var(--line); }
+
+  .hero h1{
+    font-size: clamp(44px, 8vw, 84px);
+    font-weight: 700;
+    line-height: 0.98;
+    color: var(--text);
+  }
+  .hero h1 span{ color: var(--copper); }
+
+  .hero-sub{
+    margin-top: 18px;
+    max-width: 560px;
+    font-size: 17px;
+    color: var(--text-dim);
+  }
+
+  .hero-actions{ display:flex; gap:14px; margin-top: 34px; flex-wrap: wrap; }
+  .btn{
+    font-family:'IBM Plex Mono', monospace; font-size:12.5px; text-transform:uppercase; letter-spacing:.08em;
+    padding: 13px 22px; text-decoration:none; border-radius: var(--radius);
+    display:inline-flex; align-items:center; gap:8px;
+    transition: transform .15s ease, border-color .15s ease, background .15s ease;
+  }
+  .btn-primary{ background: var(--copper); color: var(--bg); }
+  .btn-primary:hover{ transform: translateY(-1px); }
+  .btn-ghost{ border: 1px solid var(--line); color: var(--text); }
+  .btn-ghost:hover{ border-color: var(--blue); color: var(--blue); }
+
+  /* title block strip */
+  .titleblock{
+    border-top: 1px solid var(--line);
+    display:grid;
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .tb-cell{
+    padding: 16px 20px;
+    border-right: 1px solid var(--line);
+  }
+  .tb-cell:last-child{ border-right:none; }
+  .tb-cell .label{ margin-bottom:6px; }
+  .tb-cell .val{ font-family:'IBM Plex Mono', monospace; font-size:13.5px; color: var(--text); }
+  .tb-cell .val.copper{ color: var(--copper); }
+
+  /* ---------- SECTION SHELL ---------- */
+  section{ padding: 84px 0; border-bottom: 1px solid var(--line); position:relative; }
+  section:last-of-type{ border-bottom:none; }
+  .sec-head{ display:flex; align-items:baseline; gap:16px; margin-bottom: 44px; }
+  .sec-num{ font-family:'IBM Plex Mono', monospace; color: var(--copper); font-size: 13px; }
+  .sec-head h2{ font-size: clamp(26px, 4vw, 36px); }
+  .sec-head .rule{ flex:1; height:1px; background: var(--line); }
+
+  /* ---------- ABOUT ---------- */
+  .about-grid{ display:grid; grid-template-columns: 1.3fr 1fr; gap: 56px; }
+  .about-text p{ color: var(--text-dim); font-size: 16px; margin: 0 0 16px; max-width: 560px; }
+  .about-text strong{ color: var(--text); font-weight: 600; }
+
+  .spec-sheet{ border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+  .spec-sheet .sh{
+    padding: 14px 18px; border-bottom: 1px solid var(--line);
+    font-family:'IBM Plex Mono', monospace; font-size:12px; letter-spacing:.1em; text-transform:uppercase; color: var(--text-faint);
+  }
+  .spec-row{
+    display:flex; justify-content:space-between; gap: 12px;
+    padding: 13px 18px; border-bottom: 1px solid var(--line-soft);
+    font-size: 14px;
+  }
+  .spec-row:last-child{ border-bottom:none; }
+  .spec-row .k{ color: var(--text-faint); font-family:'IBM Plex Mono', monospace; font-size:12.5px; }
+  .spec-row .v{ color: var(--text); text-align:right; }
+
+  /* ---------- SKILLS ---------- */
+  .skills-grid{ display:grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+  .skill-col{ background: var(--bg); padding: 28px 26px; }
+  .skill-col .tag{
+    display:inline-block; font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:.1em;
+    text-transform:uppercase; color: var(--bg); background: var(--blue); padding: 3px 8px; border-radius: var(--radius); margin-bottom: 16px;
+  }
+  .skill-col:nth-child(1) .tag{ background: var(--copper); }
+  .skill-col:nth-child(3) .tag{ background: var(--amber); }
+  .skill-col h3{ font-size: 19px; margin-bottom: 14px; }
+  .skill-col ul{ list-style:none; margin:0; padding:0; }
+  .skill-col li{
+    font-size: 14.5px; color: var(--text-dim); padding: 8px 0; border-top: 1px solid var(--line-soft);
+    display:flex; align-items:center; gap:10px;
+  }
+  .skill-col li:first-of-type{ border-top:none; }
+  .skill-col li::before{ content:""; width:5px; height:5px; background: var(--text-faint); flex-shrink:0; }
+
+  /* ---------- PROJECTS ---------- */
+  .projects{ display:flex; flex-direction:column; gap: 22px; }
+  .project-card{
+    border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface);
+    display:grid; grid-template-columns: 220px 1fr; position:relative; overflow:hidden;
+  }
+  .project-card.featured{ border-color: var(--copper); }
+  .pc-side{
+    background: var(--surface-2); border-right: 1px solid var(--line);
+    padding: 24px 20px; display:flex; flex-direction:column; justify-content:space-between;
+  }
+  .pc-index{ font-family:'IBM Plex Mono', monospace; font-size: 34px; color: var(--line); font-weight:600; }
+  .status{
+    font-family:'IBM Plex Mono', monospace; font-size: 11px; text-transform:uppercase; letter-spacing:.08em;
+    padding: 5px 9px; border-radius: var(--radius); width: fit-content;
+  }
+  .status.progress{ background: var(--copper-soft); color: var(--copper); border:1px solid rgba(201,124,76,0.4); }
+  .status.done{ background: var(--blue-soft); color: var(--blue); border:1px solid rgba(111,168,192,0.4); }
+  .status.planned{ background: rgba(152,162,176,0.1); color: var(--text-faint); border:1px solid var(--line); }
+
+  .pc-main{ padding: 26px 28px; }
+  .pc-top{ display:flex; align-items:flex-start; justify-content:space-between; gap: 16px; margin-bottom: 10px; }
+  .pc-main h3{ font-size: 22px; }
+  .featured-flag{
+    font-family:'IBM Plex Mono', monospace; font-size: 10.5px; text-transform:uppercase; letter-spacing:.1em;
+    color: var(--copper); border: 1px solid var(--copper); padding: 3px 8px; border-radius: var(--radius); white-space:nowrap;
+  }
+  .pc-main p{ color: var(--text-dim); font-size: 14.5px; margin: 0 0 16px; max-width: 620px; }
+  .pc-tags{ display:flex; flex-wrap:wrap; gap: 8px; }
+  .pc-tags span{
+    font-family:'IBM Plex Mono', monospace; font-size: 11.5px; color: var(--text-faint);
+    border: 1px solid var(--line); padding: 4px 9px; border-radius: var(--radius);
+  }
+
+  @media (max-width: 720px){
+    .project-card{ grid-template-columns: 1fr; }
+    .pc-side{ flex-direction:row; border-right:none; border-bottom:1px solid var(--line); align-items:center; }
+  }
+
+  /* ---------- CONTACT ---------- */
+  .contact-block{
+    display:grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items:end;
+  }
+  .contact-block h2{ font-size: clamp(28px,5vw,44px); max-width: 480px; }
+  .contact-sub{ margin-top: 14px; max-width: 420px; color: var(--text-dim); font-size: 15px; }
+  .contact-links{ display:flex; flex-direction:column; gap: 0; }
+  .contact-links a{
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 16px 0; border-top: 1px solid var(--line);
+    text-decoration:none; font-family:'IBM Plex Mono', monospace; font-size: 14px; color: var(--text);
+    transition: color .15s ease, padding-left .15s ease;
+  }
+  .contact-links a:last-child{ border-bottom: 1px solid var(--line); }
+  .contact-links a .arrow{ color: var(--text-faint); transition: transform .15s ease; }
+  .contact-links a:hover{ color: var(--copper); padding-left: 6px; }
+  .contact-links a:hover .arrow{ transform: translateX(3px); color: var(--copper); }
+
+  footer{
+    padding: 28px 0; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap: 10px;
+  }
+  footer .label{ color: var(--text-faint); }
+
+  @media (max-width: 860px){
+    .titleblock{ grid-template-columns: repeat(2, 1fr); }
+    .tb-cell:nth-child(2){ border-right:none; }
+    .about-grid{ grid-template-columns: 1fr; }
+    .skills-grid{ grid-template-columns: 1fr; }
+    .contact-block{ grid-template-columns: 1fr; }
+    .nav-links{ display:none; }
+  }
+
+.detail-hero{padding:56px 28px 36px}.detail-hero h1{font-size:clamp(36px,7vw,66px);margin:18px 0}.intro{max-width:700px;color:var(--text-dim);font-size:18px}.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}.panel{padding:28px;background:var(--surface);border:1px solid var(--line);min-width:0}.panel h3{margin-bottom:14px}.panel p,.panel li{color:var(--text-dim)}.panel ol{padding-left:22px}.panel li{margin:12px 0}.detail-section{padding:42px 0}.detail-section .sec-head{margin-bottom:24px}.terminal{background:var(--bg);padding:20px;border:1px solid var(--line);overflow:auto;font:13px/1.65 'IBM Plex Mono',monospace;color:var(--blue)}.caption{font-size:13px;color:var(--text-dim)}.detail-nav{display:flex;gap:16px;align-items:center;flex-wrap:wrap}.detail-nav a{font:12px 'IBM Plex Mono',monospace;text-decoration:none;color:var(--blue)}details summary{cursor:pointer;color:var(--blue);padding:14px 0}section{scroll-margin-top:85px}@media(max-width:720px){.detail-grid{grid-template-columns:1fr}.panel{padding:20px}.detail-nav .nav-mark{display:none}.terminal{font-size:11px;padding:12px}}
+.architecture{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:24px 0}.layer{flex:1;min-width:130px;padding:20px;border:1px solid var(--line);background:var(--surface)}.layer strong{display:block;font:32px 'IBM Plex Mono',monospace;color:var(--blue)}.layer span{color:var(--text-dim)}.results{width:100%;border-collapse:collapse;font:13px 'IBM Plex Mono',monospace}.results th,.results td{text-align:left;padding:10px 6px;border-bottom:1px solid var(--line)}.results th{color:var(--blue)}.file-list{display:flex;gap:12px;flex-wrap:wrap}.file-list a{color:var(--blue)}
+@media(max-width:720px){.architecture{flex-direction:column;align-items:stretch}.architecture>span{text-align:center;transform:rotate(90deg)}.layer{text-align:center}}
+
+.chart { margin: 20px 0 0; }
+.chart img { display: block; width: 100%; height: auto; border: 1px solid var(--line); }
+.chart figcaption { margin-top: 10px; color: var(--text-dim); font-size: 14px; }
+.data-table { width: 100%; border-collapse: collapse; font: 13px/1.5 'IBM Plex Mono', monospace; }
+.data-table td, .data-table th { border-bottom: 1px solid var(--line); padding: 8px; text-align: right; }
+.data-table td:first-child, .data-table th:first-child { text-align: left; }
+.table-wrap { overflow-x: auto; }
+.detail-grid > * { min-width: 0; }
+.source-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+.source-links a { overflow-wrap: anywhere; }
+.cad-views details { margin-top: 12px; border-top: 1px solid var(--line); }
+.cad-views summary:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
+
+.detail-hero h1 { line-height: 1.12; }
+.cad-views .chart img { max-height: 560px; object-fit: contain; background: var(--bg); }
+</style></head><body>
+<nav><div class="wrap detail-nav"><a href="../index.html#neural-network-project">← All projects</a><span class="nav-mark">AMINATA GAYE / PROJECT 06</span><a href="#results">Results ↓</a></div></nav>
+<header class="detail-hero wrap"><div class="label">Software / Machine learning / C++ lab</div><h1>Neural Network Lab</h1><span class="status done">Completed</span><p class="intro">Learning to decode four binary digits: a C++ neural-network lab exploring matrix operations, forward propagation and weight updates.</p><div class="pc-tags"><span>C++</span><span>Matrix Operations</span><span>Sigmoid</span><span>Backpropagation</span><span>Binary Decoder</span></div><div class="hero-actions"><a class="btn btn-primary" href="#results">See the results ↓</a><a class="btn btn-ghost" href="neural-network-source.zip" download>Download source ZIP ↓</a></div></header>
+<main class="wrap"><section class="detail-section" id="implementation"><div class="sec-head"><span class="sec-num">01</span><h2>Inside the network</h2><span class="rule"></span></div>
+<div class="architecture" aria-label="Network architecture: 4 inputs, 16 hidden neurons, 16 outputs"><div class="layer"><strong>4</strong><span>Binary inputs</span></div><span aria-hidden="true">→</span><div class="layer"><strong>16</strong><span>Hidden neurons · ReLU</span></div><span aria-hidden="true">→</span><div class="layer"><strong>16</strong><span>Outputs · sigmoid</span></div></div>
+<div class="detail-grid"><article class="panel"><h3>From bits to a class</h3><p>Each integer from 0 to 15 becomes a row of four bits, most significant bit first. Its target is a 16-element one-hot vector: one entry is 1 and the rest are 0.</p><p>For example, <code>0101</code> represents 5. The network computes 16 output activations; the index of the largest activation becomes the predicted class.</p><p>The Matrix class supplies multiplication, addition, subtraction, transposition and element-wise multiplication using C++ vectors.</p></article><article class="panel"><h3>Training process</h3><ol><li>Initialise weights randomly between 0 and 1, with zero biases.</li><li>Apply weighted sums and biases, using ReLU in the hidden layer and sigmoid at the output.</li><li>Calculate mean-squared error and use the lab's backward update routine to adjust weights and biases.</li><li>Repeat over all 16 examples for 3,000 epochs at a learning rate of 0.05, returning the average loss from the final training epoch.</li></ol></article></div></section>
+<section class="detail-section" id="results"><div class="sec-head"><span class="sec-num">02</span><h2>Results from a real run</h2><span class="rule"></span></div><div class="detail-grid"><article class="panel"><h3>16 / 16 inputs decoded correctly</h3><p>The unmodified local source was compiled and executed for this portfolio. These predictions were captured after training.</p><table class="results"><thead><tr><th scope="col">Input</th><th scope="col">Target</th><th scope="col">Prediction</th></tr></thead><tbody><tr><td>0000</td><td>0</td><td>0</td></tr><tr><td>0001</td><td>1</td><td>1</td></tr><tr><td>0010</td><td>2</td><td>2</td></tr><tr><td>0011</td><td>3</td><td>3</td></tr><tr><td>0100</td><td>4</td><td>4</td></tr><tr><td>0101</td><td>5</td><td>5</td></tr><tr><td>0110</td><td>6</td><td>6</td></tr><tr><td>0111</td><td>7</td><td>7</td></tr><tr><td>1000</td><td>8</td><td>8</td></tr><tr><td>1001</td><td>9</td><td>9</td></tr><tr><td>1010</td><td>10</td><td>10</td></tr><tr><td>1011</td><td>11</td><td>11</td></tr><tr><td>1100</td><td>12</td><td>12</td></tr><tr><td>1101</td><td>13</td><td>13</td></tr><tr><td>1110</td><td>14</td><td>14</td></tr><tr><td>1111</td><td>15</td><td>15</td></tr></tbody></table><p class="caption">Evaluation uses the same 16 inputs as training; it is not a held-out generalisation score. Random initialisation means later runs may differ.</p></article><article class="panel"><h3>Final training loss</h3><pre class="terminal">Final loss after training: 0.000223234</pre><p class="caption">The printed loss is the average of the per-example losses during the final training epoch, before each example’s update.</p><a class="btn btn-ghost" href="output.txt" download>Download full run output ↓</a><h3 style="margin-top:28px">Implementation notes</h3><p>This preserves the coursework implementation. Its derivative helper applies sigmoid to a value that is already an activation, and the backward pass uses updated weights and a learning-rate-scaled gradient. These are useful points to revisit when comparing the lab with standard backpropagation.</p></article></div></section>
+<section class="detail-section"><div class="sec-head"><span class="sec-num">03</span><h2>Output activations across all inputs</h2><span class="rule"></span></div>
+<article class="panel"><figure class="chart"><img src="activations.png" alt="A 16-by-16 heatmap with each row&#x27;s peak on its expected output class."><figcaption>All 256 output activations from the linked training run. Each row peaks at the corresponding decimal class. The values are sigmoid activations.</figcaption></figure></article></section>
+<section class="detail-section" id="source"><div class="sec-head"><span class="sec-num">04</span><h2>Explore the code</h2><span class="rule"></span></div><div class="panel"><p>The main download contains the five C++ source and header files from rho3optional. Its layer interface supports ReLU, sigmoid and tanh; this example uses ReLU and sigmoid. Extract them into one folder, then compile and run with a C++11-compatible compiler:</p><pre class="terminal">c++ -std=c++11 -O2 main.cpp Matrix.cpp NeuralNetwork.cpp -o neural-network
+./neural-network</pre><p class="caption">Showcase source: rho3optional. StudentFiles 2 contains the separate starter scaffold, with TODO sections in network construction, forward propagation and training. Original author and copyright headers are retained.</p><p><a class="btn btn-ghost" href="studentfiles-2-starter.zip" download>Download starter scaffold ↓</a></p><div class="file-list"><a href="main.cpp" download>main.cpp ↓</a><a href="Matrix.h" download>Matrix.h ↓</a><a href="Matrix.cpp" download>Matrix.cpp ↓</a><a href="NeuralNetwork.h" download>NeuralNetwork.h ↓</a><a href="NeuralNetwork.cpp" download>NeuralNetwork.cpp ↓</a></div><details><summary>main.cpp</summary><pre class="terminal"><code>// showcase.cpp
+#include &lt;iostream&gt;
+#include &lt;vector&gt;
+#include &quot;NeuralNetwork.h&quot;
+
+// Binary input representation for numbers 0-15
+Matrix inputFromInt(int n) {
+    std::vector&lt;std::vector&lt;double&gt;&gt; d(1, std::vector&lt;double&gt;(4));
+    d[0][0] = (n &gt;&gt; 3) &amp; 1;
+    d[0][1] = (n &gt;&gt; 2) &amp; 1;
+    d[0][2] = (n &gt;&gt; 1) &amp; 1;
+    d[0][3] = (n &gt;&gt; 0) &amp; 1;
+    return Matrix(d);
+}
+
+// One-hot encoding target
+Matrix targetFromInt(int n) {
+    std::vector&lt;std::vector&lt;double&gt;&gt; d(1, std::vector&lt;double&gt;(16, 0.0));
+    d[0][n] = 1.0;
+    return Matrix(d);
+}
+
+int main() {
+    // Build dataset
+    std::vector&lt;Matrix&gt; inputs, targets;
+    for (int i = 0; i &lt; 16; ++i) {
+        inputs.push_back(inputFromInt(i));
+        targets.push_back(targetFromInt(i));
+    }
+
+    // Create user-friendly network
+    NeuralNetwork nn(0.05);
+    nn.addLayer(4, 16, Activation::RELU);      // hidden
+    nn.addLayer(16, 16, Activation::SIGMOID);  // output
+
+    // Train
+    double loss = nn.train(inputs, targets, 3000);
+    std::cout &lt;&lt; &quot;Final loss after training: &quot; &lt;&lt; loss &lt;&lt; &quot;\n\n&quot;;
+
+    // Test in lab screenshot format (Section 3.4 style)
+    for (int i = 0; i &lt; 16; ++i) {
+        Matrix out = nn.predict(inputFromInt(i));
+        auto data = out.getData()[0];
+        int pred = 0;
+        for (int j = 1; j &lt; 16; ++j)
+            if (data[j] &gt; data[pred]) pred = j;
+
+        // Lab-style output (from p.7)
+        std::cout &lt;&lt; &quot;**********************************************\n&quot;;
+        std::cout &lt;&lt; &quot;Let&#x27;s test it out!\n&quot;;
+        std::cout &lt;&lt; i &lt;&lt; &quot;\n&quot;;
+        std::cout &lt;&lt; ((i &gt;&gt; 3) &amp; 1) &lt;&lt; ((i &gt;&gt; 2) &amp; 1)
+                  &lt;&lt; ((i &gt;&gt; 1) &amp; 1) &lt;&lt; ((i &gt;&gt; 0) &amp; 1) &lt;&lt; &quot;\n&quot;;
+        std::cout &lt;&lt; &quot;******************** OUTPUT *******************\n&quot;;
+        for (int j = 0; j &lt; 16; ++j) {
+            std::cout &lt;&lt; (j + 1) &lt;&lt; &quot;---&quot; &lt;&lt; data[j] &lt;&lt; &quot;\n&quot;;
+        }
+        std::cout &lt;&lt; &quot;**********************************************\n&quot;;
+        std::cout &lt;&lt; &quot;Input &quot; &lt;&lt; ((i &gt;&gt; 3) &amp; 1) &lt;&lt; ((i &gt;&gt; 2) &amp; 1)
+                  &lt;&lt; ((i &gt;&gt; 1) &amp; 1) &lt;&lt; ((i &gt;&gt; 0) &amp; 1)
+                  &lt;&lt; &quot; -&gt; Prediction: &quot; &lt;&lt; pred &lt;&lt; &quot;\n\n&quot;;
+    }
+
+    return 0;
+}</code></pre></details><details><summary>Matrix.h</summary><pre class="terminal"><code>/*
+@Filename: Matrix.h
+@Author: Ivan Ling (ivan.ling@soton.ac.uk)
+@Version: 1.0
+
+@Date: 27/10/2025
+@copyright Copyright (c) 2025
+*/
+
+#ifndef MATRIX_H
+#define MATRIX_H
+
+#include &lt;vector&gt;
+#include &lt;iostream&gt;
+#include &lt;iomanip&gt;
+
+using namespace std;
+
+class Matrix
+{
+private: 
+	std::vector&lt;std::vector&lt;double&gt;&gt; data;
+	int row;
+	int col;
+
+public:	
+	//Constructor
+	Matrix(int r, int c, bool isRandom = false);
+	Matrix(const std::vector&lt;std::vector&lt;double&gt;&gt;&amp; d);
+	
+
+	// Getters
+    int getRows() const;
+    int getCol() const;
+    std::vector&lt;std::vector&lt;double&gt;&gt; getData() const;
+
+	
+	//Utility
+	void print() const;
+	Matrix transpose() const;
+
+	//Operators
+	Matrix operator+(const Matrix&amp; other) const;
+	Matrix operator-(const Matrix&amp; other) const;
+	Matrix operator*(const Matrix&amp; other) const;   //matrix multiplication
+	Matrix operator*(double scalar) const;
+	Matrix elementWiseMultiply(const Matrix&amp; other) const;
+
+	//Static Helpers
+	static double sigmoid(double x);
+	static double dsigmoid(double x);
+
+};
+
+#endif // MATRIX_H</code></pre></details><details><summary>Matrix.cpp</summary><pre class="terminal"><code>/*
+@Filename: Matrix.cpp
+@Author: Ivan Ling (ivan.ling@soton.ac.uk)
+@Version: 1.0
+
+@Date: 27/10/2025
+@copyright Copyright (c) 2025
+*/
+
+#include &quot;Matrix.h&quot;
+#include &lt;random&gt;   // For rand() and RAND_MAX
+#include &lt;cassert&gt;
+#include &lt;cmath&gt;
+
+
+//Constructor
+Matrix::Matrix(int r, int c, bool isRandom): row(r), col(c){
+	data.resize(r, std::vector&lt;double&gt;(c, 0.0)); // Initialize to zeros
+	 if (isRandom) {
+		 // &#x27;static&#x27; means these are created only once and reused for efficiency
+		static std::random_device rd; // Create a random device to seed the random number generator
+		static std::mt19937 gen(rd());  // Create a Mersenne Twister random number generator, seeded with the random device
+		static std::uniform_real_distribution&lt;&gt;dis(0.0, 1.0);  // Create a uniform distribution that generates numbers between 0.0 and 1.0
+		for(int i=0; i&lt;r; ++i){
+			for(int j=0; j&lt; c; ++j){
+				data[i][j]=dis(gen); // Assign a random number to the current matrix element
+			}	
+		}
+	}
+}
+
+Matrix::Matrix(const std::vector&lt;std::vector&lt;double&gt;&gt;&amp; d)
+    : data(d), row(static_cast&lt;int&gt;(d.size())), col(d.empty() ? 0 : static_cast&lt;int&gt;(d[0].size())) {
+    // Optional: validate that all rows have the same length
+    for (const auto&amp; r : d) {
+        if (static_cast&lt;int&gt;(r.size()) != col) {
+			throw std::invalid_argument(&quot;All rows must have the same number of columns.&quot;);	
+        }
+    }  
+}
+
+
+//getters
+int Matrix::getRows() const { return row; }
+int Matrix::getCol() const { return col; }
+vector&lt;vector&lt;double&gt;&gt; Matrix::getData() const { return data; }
+
+
+
+//Print the Matrix
+void Matrix::print() const{
+	for(const auto&amp; row:data){
+		for(double val: row){
+			std::cout&lt;&lt;val&lt;&lt;&quot;&quot;;
+		}
+		std::cout&lt;&lt;&quot;\n&quot;;
+	}
+
+}
+
+
+//Transpose
+Matrix Matrix::transpose() const
+{
+	Matrix result(col, row);
+    for (int i = 0; i &lt; row; ++i) {
+        for (int j = 0; j &lt; col; ++j) {
+            result.data[j][i] = data[i][j];
+        }
+    }
+    return result;
+}
+
+
+//Matrix Addition
+Matrix Matrix::operator+(const Matrix&amp; other) const{
+	assert (row==other.row &amp;&amp; col==other.col);
+	Matrix result(row,col);
+	for(int i=0; i&lt;row; ++i){
+		for(int j=0; j&lt;col; ++j){
+			result.data[i][j]= data[i][j] + other.data[i][j];
+		}
+	}
+
+	return result;
+}
+
+
+//Matrix Susbtraction
+Matrix Matrix::operator-(const Matrix&amp; other) const
+{
+	assert (row==other.row &amp;&amp; col==other.col);
+	Matrix result(row,col);
+	for(int i=0; i&lt;row; ++i){
+		for(int j=0; j&lt;col; ++j){
+			result.data[i][j]= data[i][j] - other.data[i][j];
+		}
+	}
+
+	return result;
+}
+
+//Matrix multiplication (A * B)
+Matrix Matrix::operator*(const Matrix&amp; other) const
+{
+	assert(col==other.row); // A.cols == B.rows
+	Matrix result(row, other.col);
+    for (int i = 0; i &lt; row; ++i) {
+        for (int j = 0; j &lt; other.col; ++j) {
+            for (int k = 0; k &lt; col; ++k) {
+                result.data[i][j] += data[i][k] * other.data[k][j];
+            }
+        }
+    }
+    return result;
+
+}
+
+//Scalar multiplication
+Matrix Matrix::operator*(double scalar) const
+{
+	Matrix result(row, col);
+	for(int i=0; i&lt;row; ++i){
+		for(int j=0; j&lt;col; ++j){
+			result.data[i][j]= data[i][j]*scalar;
+
+		}
+	}
+	return result;
+}
+
+// Element-wise multiplication
+Matrix Matrix::elementWiseMultiply(const Matrix&amp; other) const
+{
+	assert(row==other.row &amp;&amp; col==other.col);
+	Matrix result(row,col);
+	for (int i=0; i&lt;row; ++i){
+        for (int j = 0; j &lt; col; ++j) {
+            result.data[i][j] = data[i][j] * other.data[i][j];
+        }
+    }
+    return result;
+	
+}
+
+// Static activation functions
+double Matrix::sigmoid(double x) {
+    return 1.0 / (1.0 + std::exp(-x));
+}
+
+double Matrix::dsigmoid(double x) {
+    double s = sigmoid(x);
+    return s * (1.0 - s);
+}
+</code></pre></details><details><summary>NeuralNetwork.h</summary><pre class="terminal"><code>// NeuralNetwork.h
+#ifndef NEURALNETWORK_H
+#define NEURALNETWORK_H
+
+#include &quot;Matrix.h&quot;
+#include &lt;vector&gt;
+#include &lt;functional&gt;
+
+// Supported activation functions
+enum class Activation {
+    SIGMOID,
+    RELU,
+    TANH
+};
+
+class NeuralNetwork {
+public:
+    struct Layer {
+        Matrix weights;
+        Matrix bias;
+        Activation act;
+        Layer(int input_size, int output_size, Activation a = Activation::SIGMOID);
+    };
+
+private:
+    std::vector&lt;Layer&gt; layers;
+    double learning_rate;
+
+    // Activation and derivative wrappers
+    Matrix activate(const Matrix&amp; z, Activation act) const;
+    Matrix dactivate(const Matrix&amp; a, Activation act) const;
+
+public:
+    NeuralNetwork(double lr = 0.1);
+    void addLayer(int input_size, int output_size, Activation act = Activation::SIGMOID);
+    Matrix predict(const Matrix&amp; input) const;
+    double train(const std::vector&lt;Matrix&gt;&amp; inputs, const std::vector&lt;Matrix&gt;&amp; targets, int epochs);
+    double calculateLoss(const Matrix&amp; output, const Matrix&amp; target) const;
+};
+
+// Helper activation functions
+double relu(double x);
+double drelu(double x);
+double tanh_(double x);
+double dtanh(double x);
+
+#endif</code></pre></details><details><summary>NeuralNetwork.cpp</summary><pre class="terminal"><code>// NeuralNetwork.cpp
+#include &quot;NeuralNetwork.h&quot;
+#include &lt;cassert&gt;
+#include &lt;cmath&gt;
+
+// --- Activation functions ---
+double relu(double x) { return x &gt; 0 ? x : 0; } // rectified linear unit, it outputs the input directly if it is positive; otherwise, it will output zero
+double drelu(double x) { return x &gt; 0 ? 1 : 0; } // derivative of ReLU, it is 1 for positive input and 0 otherwise
+double tanh_(double x) { return std::tanh(x); } // hyperbolic tangent function, it outputs values between -1 and 1
+double dtanh(double x) {                        // derivative of tanh
+    double t = tanh_(x);
+    return 1.0 - t * t;
+}
+
+// --- Layer constructor ---
+// Initializes weights randomly and biases to zero
+NeuralNetwork::Layer::Layer(int input_size, int output_size, Activation a)
+    : weights(input_size, output_size, true), bias(1, output_size, false), act(a) {}
+
+// --- NeuralNetwork constructor ---
+// Initializes learning rate
+NeuralNetwork::NeuralNetwork(double lr) : learning_rate(lr) {}
+
+// --- Add a new layer ---
+void NeuralNetwork::addLayer(int input_size, int output_size, Activation act) {
+    if (!layers.empty()) {
+        int last_out = layers.back().weights.getCol();
+        if (input_size != last_out) {
+
+            // Auto-correct: use last output as input
+            input_size = last_out;
+        }
+    }
+    layers.emplace_back(input_size, output_size, act);
+}
+
+// --- Apply activation ---
+// Applies the specified activation function element-wise 
+Matrix NeuralNetwork::activate(const Matrix&amp; z, Activation act) const {
+    auto data = z.getData();
+    int rows = z.getRows();
+    int cols = z.getCol();
+    std::vector&lt;std::vector&lt;double&gt;&gt; out(rows, std::vector&lt;double&gt;(cols));
+    for (int i = 0; i &lt; rows; ++i) {
+        for (int j = 0; j &lt; cols; ++j) {
+            double val = data[i][j];
+            switch (act) {
+                case Activation::SIGMOID: out[i][j] = Matrix::sigmoid(val); break;
+                case Activation::RELU:    out[i][j] = relu(val); break;
+                case Activation::TANH:    out[i][j] = tanh_(val); break;
+            }
+        }
+    }
+    return Matrix(out);
+}
+
+// --- Derivative ---
+// Applies the derivative of the specified activation function element-wise
+Matrix NeuralNetwork::dactivate(const Matrix&amp; a, Activation act) const {
+    auto data = a.getData();
+    int rows = a.getRows();
+    int cols = a.getCol();
+    std::vector&lt;std::vector&lt;double&gt;&gt; out(rows, std::vector&lt;double&gt;(cols));
+    for (int i = 0; i &lt; rows; ++i) {
+        for (int j = 0; j &lt; cols; ++j) {
+            double val = data[i][j];
+            switch (act) {
+                case Activation::SIGMOID: out[i][j] = Matrix::dsigmoid(val); break;
+                case Activation::RELU:    out[i][j] = drelu(val); break;
+                case Activation::TANH:    out[i][j] = dtanh(val); break;
+            }
+        }
+    }
+    return Matrix(out);
+}
+
+// --- Prediction ---
+// Feeds input through the network to get output
+Matrix NeuralNetwork::predict(const Matrix&amp; input) const {
+    Matrix current = input;
+    for (const auto&amp; layer : layers) {
+        Matrix z = current * layer.weights + layer.bias;
+        current = activate(z, layer.act);
+    }
+    return current;
+}
+
+// --- Loss ---
+// Mean Squared Error between output and target
+double NeuralNetwork::calculateLoss(const Matrix&amp; output, const Matrix&amp; target) const {
+    auto o = output.getData();
+    auto t = target.getData();
+    double loss = 0.0;
+    int n = o[0].size();
+    for (int i = 0; i &lt; n; ++i) {
+        double diff = o[0][i] - t[0][i];
+        loss += diff * diff;
+    }
+    return loss / n;
+}
+
+// --- Training ---
+double NeuralNetwork::train(const std::vector&lt;Matrix&gt;&amp; inputs,
+                            const std::vector&lt;Matrix&gt;&amp; targets,
+                            int epochs) {
+    double final_loss = 0.0;
+    for (int e = 0; e &lt; epochs; ++e) {
+        final_loss = 0.0;
+        for (size_t i = 0; i &lt; inputs.size(); ++i) {
+            // Forward pass
+            std::vector&lt;Matrix&gt; activations;
+            activations.push_back(inputs[i]);
+            Matrix current = inputs[i];
+            for (const auto&amp; layer : layers) {
+                Matrix z = current * layer.weights + layer.bias;
+                current = activate(z, layer.act);
+                activations.push_back(current);
+            }
+
+            // Loss
+            final_loss += calculateLoss(current, targets[i]);
+
+            // Backprop
+            Matrix error = current - targets[i];
+            for (int l = static_cast&lt;int&gt;(layers.size()) - 1; l &gt;= 0; --l) {
+                Matrix deriv = dactivate(activations[l + 1], layers[l].act);
+                Matrix gradient = error.elementWiseMultiply(deriv) * learning_rate;
+
+                // Update bias
+                layers[l].bias = layers[l].bias - gradient;
+
+                // Delta weights
+                Matrix inputT = activations[l].transpose();
+                Matrix deltaW = inputT * gradient;
+                layers[l].weights = layers[l].weights - deltaW;
+
+                // Propagate error
+                if (l &gt; 0) {
+                    Matrix weightsT = layers[l].weights.transpose();
+                    error = gradient * weightsT;
+                }
+            }
+        }
+        final_loss /= inputs.size();
+    }
+    return final_loss;
+}</code></pre></details></div></section></main>
+<footer class="wrap"><span class="label">© 2026 AMINATA GAYE</span><a class="btn btn-ghost" href="../index.html#neural-network-project">← Back to projects</a></footer></body></html>

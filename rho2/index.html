@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Rho 2 — Circuit Simulator — Aminata Gaye</title><link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #10151c;
+    --bg-alt: #141b24;
+    --surface: #1b2531;
+    --surface-2: #212c3a;
+    --line: #2c3846;
+    --line-soft: #212a35;
+    --text: #e9e6dd;
+    --text-dim: #98a2b0;
+    --text-faint: #5f6b79;
+    --copper: #c97c4c;
+    --copper-soft: rgba(201,124,76,0.14);
+    --blue: #6fa8c0;
+    --blue-soft: rgba(111,168,192,0.14);
+    --amber: #d9a441;
+    --radius: 2px;
+    --maxw: 1120px;
+  }
+
+  *{ box-sizing: border-box; }
+  html{ scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce){
+    html{ scroll-behavior: auto; }
+    *{ animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+  }
+
+  body{
+    margin:0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    background-image:
+      linear-gradient(var(--line-soft) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
+    background-size: 48px 48px;
+    background-position: -1px -1px;
+  }
+
+  a{ color: inherit; }
+  h1,h2,h3{ font-family: 'Space Grotesk', sans-serif; margin: 0; letter-spacing: -0.01em; }
+
+  .label{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+
+  .wrap{ max-width: var(--maxw); margin: 0 auto; padding: 0 28px; }
+
+  /* ---------- NAV ---------- */
+  nav{
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(16,21,28,0.88);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+  }
+  nav .wrap{ display:flex; align-items:center; justify-content:space-between; height:64px; }
+  .nav-mark{ display:flex; align-items:center; gap:10px; font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--text-dim); }
+  .nav-mark .dot{ width:8px; height:8px; border:1.5px solid var(--copper); border-radius:50%; position:relative; }
+  .nav-mark .dot::after{ content:""; position:absolute; inset:2px; background:var(--copper); border-radius:50%; }
+  .nav-links{ display:flex; gap: 28px; list-style:none; margin:0; padding:0; }
+  .nav-links a{
+    text-decoration:none; font-family:'IBM Plex Mono', monospace; font-size:12.5px;
+    letter-spacing:0.08em; text-transform:uppercase; color: var(--text-dim);
+    padding: 4px 2px; border-bottom: 1px solid transparent;
+    transition: color .15s ease, border-color .15s ease;
+  }
+  .nav-links a:hover, .nav-links a:focus-visible{ color: var(--copper); border-color: var(--copper); }
+  .nav-cta{
+    font-family:'IBM Plex Mono', monospace; font-size:12px; text-transform:uppercase; letter-spacing:.08em;
+    color: var(--bg); background: var(--copper); padding: 8px 14px; text-decoration:none;
+    border-radius: var(--radius);
+  }
+  .nav-toggle{ display:none; }
+
+  a:focus-visible, button:focus-visible{ outline: 2px solid var(--blue); outline-offset: 3px; }
+
+  /* ---------- HERO / TITLE BLOCK ---------- */
+  .hero{
+    position: relative;
+    border-bottom: 1px solid var(--line);
+    padding: 64px 0 0 0;
+  }
+  .crop{
+    position:absolute; width:18px; height:18px; opacity:0.55;
+  }
+  .crop::before, .crop::after{ content:""; position:absolute; background: var(--text-faint); }
+  .crop::before{ width:100%; height:1px; top:50%; }
+  .crop::after{ width:1px; height:100%; left:50%; }
+  .crop.tl{ top:14px; left:14px; }
+  .crop.tr{ top:14px; right:14px; }
+
+  .hero-inner{ padding: 40px 0 56px; position:relative; }
+  .hero-eyebrow{
+    display:flex; align-items:center; gap:10px; margin-bottom:22px;
+  }
+  .hero-eyebrow .rule{ flex:1; height:1px; background: var(--line); }
+
+  .hero h1{
+    font-size: clamp(44px, 8vw, 84px);
+    font-weight: 700;
+    line-height: 0.98;
+    color: var(--text);
+  }
+  .hero h1 span{ color: var(--copper); }
+
+  .hero-sub{
+    margin-top: 18px;
+    max-width: 560px;
+    font-size: 17px;
+    color: var(--text-dim);
+  }
+
+  .hero-actions{ display:flex; gap:14px; margin-top: 34px; flex-wrap: wrap; }
+  .btn{
+    font-family:'IBM Plex Mono', monospace; font-size:12.5px; text-transform:uppercase; letter-spacing:.08em;
+    padding: 13px 22px; text-decoration:none; border-radius: var(--radius);
+    display:inline-flex; align-items:center; gap:8px;
+    transition: transform .15s ease, border-color .15s ease, background .15s ease;
+  }
+  .btn-primary{ background: var(--copper); color: var(--bg); }
+  .btn-primary:hover{ transform: translateY(-1px); }
+  .btn-ghost{ border: 1px solid var(--line); color: var(--text); }
+  .btn-ghost:hover{ border-color: var(--blue); color: var(--blue); }
+
+  /* title block strip */
+  .titleblock{
+    border-top: 1px solid var(--line);
+    display:grid;
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .tb-cell{
+    padding: 16px 20px;
+    border-right: 1px solid var(--line);
+  }
+  .tb-cell:last-child{ border-right:none; }
+  .tb-cell .label{ margin-bottom:6px; }
+  .tb-cell .val{ font-family:'IBM Plex Mono', monospace; font-size:13.5px; color: var(--text); }
+  .tb-cell .val.copper{ color: var(--copper); }
+
+  /* ---------- SECTION SHELL ---------- */
+  section{ padding: 84px 0; border-bottom: 1px solid var(--line); position:relative; }
+  section:last-of-type{ border-bottom:none; }
+  .sec-head{ display:flex; align-items:baseline; gap:16px; margin-bottom: 44px; }
+  .sec-num{ font-family:'IBM Plex Mono', monospace; color: var(--copper); font-size: 13px; }
+  .sec-head h2{ font-size: clamp(26px, 4vw, 36px); }
+  .sec-head .rule{ flex:1; height:1px; background: var(--line); }
+
+  /* ---------- ABOUT ---------- */
+  .about-grid{ display:grid; grid-template-columns: 1.3fr 1fr; gap: 56px; }
+  .about-text p{ color: var(--text-dim); font-size: 16px; margin: 0 0 16px; max-width: 560px; }
+  .about-text strong{ color: var(--text); font-weight: 600; }
+
+  .spec-sheet{ border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+  .spec-sheet .sh{
+    padding: 14px 18px; border-bottom: 1px solid var(--line);
+    font-family:'IBM Plex Mono', monospace; font-size:12px; letter-spacing:.1em; text-transform:uppercase; color: var(--text-faint);
+  }
+  .spec-row{
+    display:flex; justify-content:space-between; gap: 12px;
+    padding: 13px 18px; border-bottom: 1px solid var(--line-soft);
+    font-size: 14px;
+  }
+  .spec-row:last-child{ border-bottom:none; }
+  .spec-row .k{ color: var(--text-faint); font-family:'IBM Plex Mono', monospace; font-size:12.5px; }
+  .spec-row .v{ color: var(--text); text-align:right; }
+
+  /* ---------- SKILLS ---------- */
+  .skills-grid{ display:grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+  .skill-col{ background: var(--bg); padding: 28px 26px; }
+  .skill-col .tag{
+    display:inline-block; font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:.1em;
+    text-transform:uppercase; color: var(--bg); background: var(--blue); padding: 3px 8px; border-radius: var(--radius); margin-bottom: 16px;
+  }
+  .skill-col:nth-child(1) .tag{ background: var(--copper); }
+  .skill-col:nth-child(3) .tag{ background: var(--amber); }
+  .skill-col h3{ font-size: 19px; margin-bottom: 14px; }
+  .skill-col ul{ list-style:none; margin:0; padding:0; }
+  .skill-col li{
+    font-size: 14.5px; color: var(--text-dim); padding: 8px 0; border-top: 1px solid var(--line-soft);
+    display:flex; align-items:center; gap:10px;
+  }
+  .skill-col li:first-of-type{ border-top:none; }
+  .skill-col li::before{ content:""; width:5px; height:5px; background: var(--text-faint); flex-shrink:0; }
+
+  /* ---------- PROJECTS ---------- */
+  .projects{ display:flex; flex-direction:column; gap: 22px; }
+  .project-card{
+    border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface);
+    display:grid; grid-template-columns: 220px 1fr; position:relative; overflow:hidden;
+  }
+  .project-card.featured{ border-color: var(--copper); }
+  .pc-side{
+    background: var(--surface-2); border-right: 1px solid var(--line);
+    padding: 24px 20px; display:flex; flex-direction:column; justify-content:space-between;
+  }
+  .pc-index{ font-family:'IBM Plex Mono', monospace; font-size: 34px; color: var(--line); font-weight:600; }
+  .status{
+    font-family:'IBM Plex Mono', monospace; font-size: 11px; text-transform:uppercase; letter-spacing:.08em;
+    padding: 5px 9px; border-radius: var(--radius); width: fit-content;
+  }
+  .status.progress{ background: var(--copper-soft); color: var(--copper); border:1px solid rgba(201,124,76,0.4); }
+  .status.done{ background: var(--blue-soft); color: var(--blue); border:1px solid rgba(111,168,192,0.4); }
+  .status.planned{ background: rgba(152,162,176,0.1); color: var(--text-faint); border:1px solid var(--line); }
+
+  .pc-main{ padding: 26px 28px; }
+  .pc-top{ display:flex; align-items:flex-start; justify-content:space-between; gap: 16px; margin-bottom: 10px; }
+  .pc-main h3{ font-size: 22px; }
+  .featured-flag{
+    font-family:'IBM Plex Mono', monospace; font-size: 10.5px; text-transform:uppercase; letter-spacing:.1em;
+    color: var(--copper); border: 1px solid var(--copper); padding: 3px 8px; border-radius: var(--radius); white-space:nowrap;
+  }
+  .pc-main p{ color: var(--text-dim); font-size: 14.5px; margin: 0 0 16px; max-width: 620px; }
+  .pc-tags{ display:flex; flex-wrap:wrap; gap: 8px; }
+  .pc-tags span{
+    font-family:'IBM Plex Mono', monospace; font-size: 11.5px; color: var(--text-faint);
+    border: 1px solid var(--line); padding: 4px 9px; border-radius: var(--radius);
+  }
+
+  @media (max-width: 720px){
+    .project-card{ grid-template-columns: 1fr; }
+    .pc-side{ flex-direction:row; border-right:none; border-bottom:1px solid var(--line); align-items:center; }
+  }
+
+  /* ---------- CONTACT ---------- */
+  .contact-block{
+    display:grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items:end;
+  }
+  .contact-block h2{ font-size: clamp(28px,5vw,44px); max-width: 480px; }
+  .contact-sub{ margin-top: 14px; max-width: 420px; color: var(--text-dim); font-size: 15px; }
+  .contact-links{ display:flex; flex-direction:column; gap: 0; }
+  .contact-links a{
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 16px 0; border-top: 1px solid var(--line);
+    text-decoration:none; font-family:'IBM Plex Mono', monospace; font-size: 14px; color: var(--text);
+    transition: color .15s ease, padding-left .15s ease;
+  }
+  .contact-links a:last-child{ border-bottom: 1px solid var(--line); }
+  .contact-links a .arrow{ color: var(--text-faint); transition: transform .15s ease; }
+  .contact-links a:hover{ color: var(--copper); padding-left: 6px; }
+  .contact-links a:hover .arrow{ transform: translateX(3px); color: var(--copper); }
+
+  footer{
+    padding: 28px 0; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap: 10px;
+  }
+  footer .label{ color: var(--text-faint); }
+
+  @media (max-width: 860px){
+    .titleblock{ grid-template-columns: repeat(2, 1fr); }
+    .tb-cell:nth-child(2){ border-right:none; }
+    .about-grid{ grid-template-columns: 1fr; }
+    .skills-grid{ grid-template-columns: 1fr; }
+    .contact-block{ grid-template-columns: 1fr; }
+    .nav-links{ display:none; }
+  }
+
+.detail-hero{padding:56px 28px 36px}.detail-hero h1{font-size:clamp(36px,7vw,66px);margin:18px 0}.intro{max-width:700px;color:var(--text-dim);font-size:18px}.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}.panel{padding:28px;background:var(--surface);border:1px solid var(--line);min-width:0}.panel h3{margin-bottom:14px}.panel p,.panel li{color:var(--text-dim)}.panel ol{padding-left:22px}.panel li{margin:12px 0}.detail-section{padding:42px 0}.detail-section .sec-head{margin-bottom:24px}.terminal{background:var(--bg);padding:20px;border:1px solid var(--line);overflow:auto;font:13px/1.65 'IBM Plex Mono',monospace;color:var(--blue)}.caption{font-size:13px;color:var(--text-dim)}.detail-nav{display:flex;gap:16px;align-items:center;flex-wrap:wrap}.detail-nav a{font:12px 'IBM Plex Mono',monospace;text-decoration:none;color:var(--blue)}details summary{cursor:pointer;color:var(--blue);padding:14px 0}section{scroll-margin-top:85px}@media(max-width:720px){.detail-grid{grid-template-columns:1fr}.panel{padding:20px}.detail-nav .nav-mark{display:none}.terminal{font-size:11px;padding:12px}}
+
+.chart { margin: 20px 0 0; }
+.chart img { display: block; width: 100%; height: auto; border: 1px solid var(--line); }
+.chart figcaption { margin-top: 10px; color: var(--text-dim); font-size: 14px; }
+.data-table { width: 100%; border-collapse: collapse; font: 13px/1.5 'IBM Plex Mono', monospace; }
+.data-table td, .data-table th { border-bottom: 1px solid var(--line); padding: 8px; text-align: right; }
+.data-table td:first-child, .data-table th:first-child { text-align: left; }
+.table-wrap { overflow-x: auto; }
+.detail-grid > * { min-width: 0; }
+.source-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+.source-links a { overflow-wrap: anywhere; }
+.cad-views details { margin-top: 12px; border-top: 1px solid var(--line); }
+.cad-views summary:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
+
+.detail-hero h1 { line-height: 1.12; }
+.cad-views .chart img { max-height: 560px; object-fit: contain; background: var(--bg); }
+</style></head><body><nav><div class="wrap detail-nav"><a href="../index.html#rho2-project">← All projects</a><span class="nav-mark">AMINATA GAYE / PROJECT 08</span><a href="#results">Results ↓</a></div></nav>
+<header class="detail-hero wrap"><div class="label">Software / Circuit simulation / Rho 2</div><h1>Rho 2 — Circuit Simulator</h1><span class="status done">Completed</span><p class="intro">Three engineering tools in one C++ console application: analyse resistor networks, explore Fourier waveforms and evaluate logic-gate arrays.</p><div class="pc-tags"><span>C++</span><span>Object-Oriented Programming</span><span>Circuit Analysis</span><span>Fourier Series</span><span>Digital Logic</span></div><div class="hero-actions"><a class="btn btn-primary" href="#results">See the results ↓</a><a class="btn btn-ghost" href="rho2-source.zip" download>Download source ZIP ↓</a></div></header>
+<main class="wrap"><section class="detail-section" id="implementation"><div class="sec-head"><span class="sec-num">01</span><h2>Three simulation tools</h2><span class="rule"></span></div><div class="detail-grid">
+<article class="panel"><h3>Resistor network analyser</h3><p>Reads a text netlist containing resistors, voltage sources and current sources. Builds a modified nodal-analysis system, fixes node 0 as ground, and solves for node voltages and voltage-source currents using Gaussian elimination and back substitution.</p></article>
+<article class="panel"><h3>Fourier wave simulator</h3><p>Combines up to six sine and cosine harmonics. Menu presets generate a sine wave, cosine wave, a three-odd-harmonic square-wave approximation and an alternating-sign sawtooth approximation.</p><p>The signal is normalised to a 0–1 range and plotted as an ASCII trace for a chosen number of samples.</p></article>
+<article class="panel"><h3>Logic-gate array simulator</h3><p>Loads named inputs and sum-of-products terms from a configuration file. Each term is an AND condition; matching any term sets the OR output to 1. A dash or X marks a don’t-care input.</p></article>
+<article class="panel"><h3>Software structure</h3><p>Separate C++ classes encapsulate each simulator. An integrated console menu lets the user switch between the tools and exit the application.</p><p>File parsing uses streams and strings, while vectors hold circuit components, equations and logic terms.</p></article></div></section>
+<section class="detail-section" id="results"><div class="sec-head"><span class="sec-num">02</span><h2>Captured example run</h2><span class="rule"></span></div><div class="detail-grid"><article class="panel"><h3>Resistor network output</h3><p>Compiled from the source in rho2.zip and run with its supplied example2.cir file.</p><pre class="terminal">==============================
+   CIRCUIT ANALYSIS RESULTS
+==============================
+ Voltage sources: 1
+ Current sources: 0
+       Resistors: 3
+           Nodes: 3
+------------------------------
+ Node   0 = 0.000000 V
+ Node   1 = -12.000000 V
+ Node   2 = -6.000000 V
+------------------------------
+ I(V1)   =   0.006000 A
+==============================
+</pre><p class="caption">The source stamps voltage-source values with a negative sign. These voltages reproduce its output; the solver also uses elimination without pivoting, so this demonstration does not establish correctness for arbitrary circuits.</p></article>
+<article class="panel"><h3>Inputs and checks</h3><p>The example circuit uses a 12 V source, a 1 kΩ resistor and two 2 kΩ resistors:</p><pre class="terminal">V1 1 0 12.0
+R1 1 2 1000.0
+R2 2 0 2000.0
+R3 2 0 2000.0</pre><p>The logic simulator returned <strong>0</strong> for A=1, B=0, C=0 using the supplied configuration. The sine preset produced ten samples, with normalised values rising from <strong>0.521</strong> to <strong>0.703</strong>.</p><a class="btn btn-ghost" href="output.txt" download>Download full run output ↓</a></article></div></section>
+<section class="detail-section"><div class="sec-head"><span class="sec-num">03</span><h2>Fourier simulator output</h2><span class="rule"></span></div>
+<article class="panel"><figure class="chart"><img src="sine-samples.png" alt="Ten printed sine preset values rising from 0.521 to 0.703."><figcaption>The plotted points come from the simulator’s ten-sample console run. The display scales the sine values to a 0–1 range.</figcaption></figure></article></section>
+<section class="detail-section" id="source"><div class="sec-head"><span class="sec-num">04</span><h2>Explore the code</h2><span class="rule"></span></div><div class="panel"><p>The source ZIP includes the integrated simulator, the other C++ files from the lab, and its example netlists and logic configuration. Compile the integrated file on its own:</p><pre class="terminal">c++ -std=c++11 -O2 circuitSimulator.cpp -o rho2
+./rho2</pre><p>Run from the extracted folder so the program can find <code>logic_config.txt</code>. Choose option 1 and enter <code>example2.cir</code> for the circuit example, option 2 for waveforms, or option 3 for logic simulation.</p><p class="caption">Source: CircuitSimulator folder inside the local rho2.zip archive. The coursework files are unchanged.</p><details><summary>View integrated C++ source</summary><pre class="terminal"><code>// rho2_simulator.cpp
+// Full ρ² Circuit Simulator – Integrated CLI Menu
+// Sections 2.4 + 3.2 + 3.3
+
+#include &lt;iostream&gt;
+#include &lt;iomanip&gt;
+#include &lt;cmath&gt;
+#include &lt;limits&gt;
+#include &lt;vector&gt;
+#include &lt;string&gt;
+#include &lt;fstream&gt;
+#include &lt;sstream&gt;
+#include &lt;algorithm&gt;
+
+// ===================================================================================
+// 1. FOURIER SIMULATOR (C2)
+// ===================================================================================
+class FourierSimulator {
+private:
+    static constexpr double PI = 3.14159265358979323846;
+    static constexpr int PLOT_WIDTH = 180;
+    static constexpr double TIME_SCALE = 75.0;
+
+    double a0 = 0.0;
+    double a[6] = {0};
+    double b[6] = {0};
+
+    void plotValue(float value) const {
+        int spaces = static_cast&lt;int&gt;(value * PLOT_WIDTH);
+        if (spaces &lt; 0) spaces = 0;
+        if (spaces &gt; PLOT_WIDTH) spaces = PLOT_WIDTH;
+        for (int i = 0; i &lt; spaces; ++i) std::cout &lt;&lt; &#x27; &#x27;;
+        std::cout &lt;&lt; &quot;*\n&quot;;
+    }
+
+    float computeWave(unsigned long t) const {
+        double omega_t = (PI / TIME_SCALE) * static_cast&lt;double&gt;(t);
+        double sum = a0;
+        for (int n = 1; n &lt;= 6; ++n) {
+            sum += a[n-1] * std::cos(n * omega_t) + b[n-1] * std::sin(n * omega_t);
+        }
+
+        double maxAbs = std::abs(a0);
+        for (int i = 0; i &lt; 6; ++i) {
+            maxAbs += std::abs(a[i]) + std::abs(b[i]);
+        }
+        if (maxAbs &lt;= 0.0) return 0.5f;
+        float y = static_cast&lt;float&gt;((sum + maxAbs) / (2.0 * maxAbs));
+        if (y &lt; 0.0f) y = 0.0f;
+        if (y &gt; 1.0f) y = 1.0f;
+        return y;
+    }
+
+public:
+    void setCoefficients(double _a0, const double _a[6], const double _b[6]) {
+        a0 = _a0;
+        for (int i = 0; i &lt; 6; ++i) {
+            a[i] = _a[i];
+            b[i] = _b[i];
+        }
+    }
+
+    void runSimulation() {
+        int numSamples;
+        std::cout &lt;&lt; &quot;\nEnter number of samples to plot (e.g., 250): &quot;;
+        if (!(std::cin &gt;&gt; numSamples) || numSamples &lt;= 0) {
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits&lt;std::streamsize&gt;::max(), &#x27;\n&#x27;);
+            std::cout &lt;&lt; &quot;Invalid input. Using default 250 samples.\n&quot;;
+            numSamples = 250;
+        }
+
+        for (unsigned long x = 1; x &lt;= static_cast&lt;unsigned long&gt;(numSamples); ++x) {
+            float y = computeWave(x);
+            std::cout &lt;&lt; std::setw(8) &lt;&lt; x;
+            std::cout &lt;&lt; std::fixed &lt;&lt; std::setprecision(3);
+            std::cout &lt;&lt; std::setw(8) &lt;&lt; y &lt;&lt; &quot; |&quot;;
+            std::cout &lt;&lt; (x % 10 == 0 ? &quot;---&quot; : &quot;  &quot;);
+            plotValue(y);
+        }
+    }
+
+    void run() {
+        std::cout &lt;&lt; &quot;\n=== Fourier Wave Simulator ===\n&quot;;
+        std::cout &lt;&lt; &quot;1. Pure Sine Wave (b1 = 1)\n&quot;;
+        std::cout &lt;&lt; &quot;2. Square Wave (3 odd harmonics)\n&quot;;
+        std::cout &lt;&lt; &quot;3. Cosine Wave (a1 = 1)\n&quot;;
+        std::cout &lt;&lt; &quot;4. Sawtooth Wave (alternating signs)\n&quot;;
+        std::cout &lt;&lt; &quot;Choice: &quot;;
+
+        int choice;
+        std::cin &gt;&gt; choice;
+
+        double a[6] = {0}, b[6] = {0}, a0 = 0.0;
+        switch (choice) {
+            case 1: b[0] = 1.0; break;
+            case 2: b[0] = 1.0; b[2] = 1.0/3.0; b[4] = 1.0/5.0; break;
+            case 3: a[0] = 1.0; break;
+            case 4:
+                b[0] =  1.0;
+                b[1] = -0.5;
+                b[2] =  1.0/3.0;
+                b[3] = -0.25;
+                b[4] =  0.2;
+                b[5] = -1.0/6.0;
+                break;
+            default: b[0] = 1.0;
+        }
+        setCoefficients(a0, a, b);
+        runSimulation();
+    }
+};
+
+// ===================================================================================
+// 2. LOGIC GATE SIMULATOR (SOP)
+// ===================================================================================
+class LogicGateSimulator {
+private:
+    std::vector&lt;std::string&gt; inputNames;
+    std::vector&lt;std::vector&lt;int&gt;&gt; andTerms;
+
+    std::vector&lt;int&gt; parseTerm(const std::string&amp; line) {
+        std::vector&lt;int&gt; term;
+        std::istringstream iss(line);
+        std::string token;
+        while (iss &gt;&gt; token) {
+            if (token == &quot;-&quot; || token == &quot;X&quot; || token == &quot;x&quot;) term.push_back(-1);
+            else if (token == &quot;0&quot;) term.push_back(0);
+            else if (token == &quot;1&quot;) term.push_back(1);
+            else term.push_back(-1);
+        }
+        return term;
+    }
+
+    bool evaluateAndGate(const std::vector&lt;bool&gt;&amp; inputs, const std::vector&lt;int&gt;&amp; term) {
+        for (size_t i = 0; i &lt; term.size(); ++i) {
+            if (term[i] == -1) continue;
+            bool expected = (term[i] == 1);
+            if (inputs[i] != expected) return false;
+        }
+        return true;
+    }
+
+    bool evaluateOutput(const std::vector&lt;bool&gt;&amp; inputs) {
+        for (const auto&amp; term : andTerms) {
+            if (evaluateAndGate(inputs, term)) return true;
+        }
+        return false;
+    }
+
+public:
+    bool loadConfig(const std::string&amp; filename) {
+        std::ifstream file(filename);
+        if (!file.is_open()) return false;
+
+        inputNames.clear();
+        andTerms.clear();
+
+        std::string line;
+        if (std::getline(file, line) &amp;&amp; line.substr(0, 7) == &quot;INPUTS:&quot;) {
+            std::istringstream iss(line.substr(7));
+            std::string name;
+            while (iss &gt;&gt; name) inputNames.push_back(name);
+        }
+
+        while (std::getline(file, line)) {
+            if (line.empty() || line[0] == &#x27;#&#x27; || line[0] == &#x27;/&#x27;) continue;
+            size_t pos = line.find(&#x27;#&#x27;);
+            if (pos != std::string::npos) line = line.substr(0, pos);
+            auto term = parseTerm(line);
+            if (!term.empty() &amp;&amp; term.size() == inputNames.size()) {
+                andTerms.push_back(term);
+            }
+        }
+        file.close();
+        return true;
+    }
+
+    void run() {
+        std::string filename = &quot;logic_config.txt&quot;;
+        if (!loadConfig(filename)) {
+            std::cout &lt;&lt; &quot;❌ Config file &#x27;logic_config.txt&#x27; not found.\n&quot;;
+            return;
+        }
+
+        char repeat = &#x27;y&#x27;;
+        while (repeat == &#x27;y&#x27; || repeat == &#x27;Y&#x27;) {
+            std::vector&lt;bool&gt; vals(inputNames.size());
+            std::cout &lt;&lt; &quot;\nEnter inputs (0/1):\n&quot;;
+            for (size_t i = 0; i &lt; inputNames.size(); ++i) {
+                int v; std::cout &lt;&lt; inputNames[i] &lt;&lt; &quot; = &quot;; std::cin &gt;&gt; v;
+                vals[i] = (v != 0);
+            }
+            bool out = evaluateOutput(vals);
+            std::cout &lt;&lt; &quot;Output x = &quot; &lt;&lt; (out ? &quot;1&quot; : &quot;0&quot;) &lt;&lt; &quot;\n&quot;;
+            std::cout &lt;&lt; &quot;Test again? (y/n): &quot;;
+            std::cin &gt;&gt; repeat;
+        }
+    }
+};
+
+// ===================================================================================
+// 3. RESISTOR NETWORK ANALYSER (C5)
+// ===================================================================================
+class ResistorNetworkAnalyser {
+private:
+    enum class CompType { resistor, voltage, current };
+    struct Component {
+        CompType type;
+        std::string name;
+        unsigned int n1, n2;
+        double value;
+    };
+
+    std::vector&lt;Component&gt; components;
+    unsigned int nR = 0, nV = 0, nI = 0, nN = 0;
+
+    std::vector&lt;double&gt; solveLinearSystem(std::vector&lt;std::vector&lt;double&gt;&gt;&amp; A, std::vector&lt;double&gt;&amp; b) {
+        unsigned int n = A.size();
+        std::vector&lt;double&gt; x(n, 0.0);
+        for (unsigned int i = 0; i &lt; n - 1; ++i) {
+            for (unsigned int j = i + 1; j &lt; n; ++j) {
+                double f = A[j][i] / A[i][i];
+                for (unsigned int k = i; k &lt; n; ++k) A[j][k] -= f * A[i][k];
+                b[j] -= f * b[i];
+            }
+        }
+        for (int i = n - 1; i &gt;= 0; --i) {
+            double sum = 0.0;
+            for (unsigned int j = i + 1; j &lt; n; ++j) sum += A[i][j] * x[j];
+            x[i] = (b[i] - sum) / A[i][i];
+        }
+        return x;
+    }
+
+public:
+    bool loadFromFile(const std::string&amp; filename) {
+        std::ifstream file(filename);
+        if (!file.is_open()) return false;
+
+        components.clear();
+        nR = nV = nI = nN = 0;
+
+        std::string line;
+        while (std::getline(file, line)) {
+            if (line.empty() || line[0] == &#x27;#&#x27;) continue;
+            std::istringstream iss(line);
+            std::string name;
+            unsigned int n1, n2;
+            double value;
+            if (!(iss &gt;&gt; name &gt;&gt; n1 &gt;&gt; n2 &gt;&gt; value)) continue;
+
+            CompType type;
+            if (name[0] == &#x27;R&#x27;) { type = CompType::resistor; nR++; }
+            else if (name[0] == &#x27;V&#x27;) { type = CompType::voltage; nV++; }
+            else if (name[0] == &#x27;I&#x27;) { type = CompType::current; nI++; }
+            else continue;
+
+            components.push_back({type, name, n1, n2, value});
+            nN = std::max({nN, n1, n2});
+        }
+        nN++;
+        file.close();
+        return true;
+    }
+
+    void analyse() {
+        if (components.empty()) return;
+
+        unsigned int N = nN + nV;
+        std::vector&lt;std::vector&lt;double&gt;&gt; A(N, std::vector&lt;double&gt;(N, 0.0));
+        std::vector&lt;double&gt; Z(N, 0.0);
+
+        unsigned int vIdx = 0;
+        for (const auto&amp; c : components) {
+            if (c.type == CompType::resistor) {
+                double g = 1.0 / c.value;
+                A[c.n1][c.n1] += g; A[c.n2][c.n2] += g;
+                A[c.n1][c.n2] -= g; A[c.n2][c.n1] -= g;
+            } else if (c.type == CompType::voltage) {
+                A[c.n1][nN + vIdx] = 1.0; A[c.n2][nN + vIdx] = -1.0;
+                A[nN + vIdx][c.n1] = 1.0; A[nN + vIdx][c.n2] = -1.0;
+                Z[nN + vIdx] = -c.value;
+                vIdx++;
+            } else if (c.type == CompType::current) {
+                Z[c.n1] -= c.value; Z[c.n2] += c.value;
+            }
+        }
+
+        A[0][0] = 1.0; Z[0] = 0.0;
+        for (unsigned int i = 1; i &lt; N; ++i) A[0][i] = A[i][0] = 0.0;
+
+        std::vector&lt;double&gt; X = solveLinearSystem(A, Z);
+
+        std::cout &lt;&lt; &quot;\n&quot; &lt;&lt; std::string(30, &#x27;=&#x27;) &lt;&lt; &quot;\n&quot;;
+        std::cout &lt;&lt; &quot;   CIRCUIT ANALYSIS RESULTS\n&quot;;
+        std::cout &lt;&lt; std::string(30, &#x27;=&#x27;) &lt;&lt; &quot;\n&quot;;
+        std::cout &lt;&lt; &quot; Voltage sources: &quot; &lt;&lt; nV &lt;&lt; &quot;\n&quot;;
+        std::cout &lt;&lt; &quot; Current sources: &quot; &lt;&lt; nI &lt;&lt; &quot;\n&quot;;
+        std::cout &lt;&lt; &quot;       Resistors: &quot; &lt;&lt; nR &lt;&lt; &quot;\n&quot;;
+        std::cout &lt;&lt; &quot;           Nodes: &quot; &lt;&lt; nN &lt;&lt; &quot;\n&quot;;
+        std::cout &lt;&lt; std::string(30, &#x27;-&#x27;) &lt;&lt; &quot;\n&quot;;
+        for (unsigned int i = 0; i &lt; nN; ++i)
+            std::cout &lt;&lt; &quot; Node &quot; &lt;&lt; std::setw(3) &lt;&lt; i &lt;&lt; &quot; = &quot; &lt;&lt; std::fixed &lt;&lt; std::setprecision(6) &lt;&lt; X[i] &lt;&lt; &quot; V\n&quot;;
+        if (nV &gt; 0) {
+            std::cout &lt;&lt; std::string(30, &#x27;-&#x27;) &lt;&lt; &quot;\n&quot;;
+            vIdx = 0;
+            for (const auto&amp; c : components)
+                if (c.type == CompType::voltage)
+                    std::cout &lt;&lt; &quot; I(&quot; &lt;&lt; c.name &lt;&lt; &quot;)   = &quot; &lt;&lt; std::setw(10) &lt;&lt; std::setprecision(6) &lt;&lt; X[nN + vIdx++] &lt;&lt; &quot; A\n&quot;;
+        }
+        std::cout &lt;&lt; std::string(30, &#x27;=&#x27;) &lt;&lt; &quot;\n&quot;;
+    }
+
+    void run() {
+        std::string file;
+        std::cout &lt;&lt; &quot;\nEnter netlist filename (e.g., example2.cir): &quot;;
+        std::cin &gt;&gt; file;
+        if (loadFromFile(file)) analyse();
+        else std::cout &lt;&lt; &quot; Failed to load circuit.\n&quot;;
+    }
+};
+
+// ===================================================================================
+// MAIN CLI MENU – SECTION 2.4 + 3.2
+// ===================================================================================
+int main() {
+    int choice;
+    while (true) {
+        std::cout &lt;&lt; &quot;\n&quot; &lt;&lt; std::string(50, &#x27;=&#x27;) &lt;&lt; &quot;\n&quot;;
+        std::cout &lt;&lt; &quot;             CIRCUIT SIMULATOR \n&quot;;
+        std::cout &lt;&lt; std::string(50, &#x27;=&#x27;) &lt;&lt; &quot;\n&quot;;
+        std::cout &lt;&lt; &quot;1. Resistor Network Analyser (C5)\n&quot;;
+        std::cout &lt;&lt; &quot;2. Fourier Wave Simulator (C2)\n&quot;;
+        std::cout &lt;&lt; &quot;3. Logic Gate Array Simulator (SOP)\n&quot;;
+        std::cout &lt;&lt; &quot;4. Exit\n&quot;;
+        std::cout &lt;&lt; &quot;Choose an option (1-4): &quot;;
+        
+        if (!(std::cin &gt;&gt; choice)) {
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits&lt;std::streamsize&gt;::max(), &#x27;\n&#x27;);
+            choice = -1;
+        }
+
+        switch (choice) {
+            case 1: {
+                ResistorNetworkAnalyser r;
+                r.run();
+                break;
+            }
+            case 2: {
+                FourierSimulator f;
+                f.run();
+                break;
+            }
+            case 3: {
+                LogicGateSimulator l;
+                l.run();
+                break;
+            }
+            case 4:
+                std::cout &lt;&lt; &quot;Goodbye!\n&quot;;
+                return 0;
+            default:
+                std::cout &lt;&lt; &quot; Invalid option. Please enter 1-4.\n&quot;;
+        }
+    }
+}
+
+</code></pre></details></div></section></main><footer class="wrap"><span class="label">© 2026 AMINATA GAYE</span><a class="btn btn-ghost" href="../index.html#rho2-project">← Back to projects</a></footer></body></html>
